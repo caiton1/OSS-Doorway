@@ -4,7 +4,10 @@
  */
 import { questFunctions } from './src/quest.js';
 import { MongoDB } from './src/database.js';
+import fs from 'fs';
+const responseFilePath = './src/responses.json';
 
+const responses = JSON.parse(fs.readFileSync(responseFilePath, 'utf-8')).responses;
 const db = new MongoDB();
 await db.connect();
 
@@ -19,8 +22,7 @@ export default (app) => {
     // issue command
     app.on("issues.opened", async (context) => {
         const issueComment = context.issue({
-            body: 'You have opened an issue, avaialble commands are: \nnew_user, creates new user\naccept <Q#>, accepts quests\n' +
-                'drop, drops current quest\ndisplay, displays available quests\n',
+            body: responses.newIssue
         });
         return context.octokit.issues.createComment(issueComment);
     });
@@ -46,19 +48,19 @@ export default (app) => {
                         // accept
                         status = await questFunctions.acceptQuest(context, db, user, command.argument);
                         if (!status) {
-                            { response = 'Quest failed to accept, please ensure you are not already on a quest.' }
+                            response = responses.failedAccept 
                         }
                         break;
                     case 'drop':
                         // drop
                         status = await questFunctions.removeQuest(db, user);
-                        if (status) { response = 'Quest successfully dropped!' }
+                        if (status) { response = responses.taskAbandoned }
                         else { response = 'Failed to drop quest. You might not be currently on any quests.' }
                         break;
                     case 'new_user':
                         // create user
                         status = await db.createUser(user)
-                        if (status) { response = 'New user created!' }
+                        if (status) { response = responses.newUserResponse }
                         else { response = 'Failed to create new user, user already exists' }
                         break;
                     case 'display':
@@ -66,8 +68,7 @@ export default (app) => {
                         break;
                     default:
                         // respond unknown command and avaialble commands
-                        response = 'Invalid command! Available commands: \n/new_user, creates new user\n/accept <Q#>, accepts quests\n' +
-                            '/drop, drops current quest\n/display, displays available quests\n';
+                        response = response.invalidCommand;
                         break;
                 }
                 if(response !== ''){

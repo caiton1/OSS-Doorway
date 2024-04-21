@@ -1,10 +1,10 @@
 import fs from 'fs';
 const questFilePath = './src/available-quests.json';
-
+const responseFilePath = './src/responses.json';
+const questResponse = JSON.parse(fs.readFileSync(responseFilePath, 'utf-8'));
 
 
 async function acceptQuest(context, db, user, quest) {
-    console.log('accept quest called');
     try {
         // Read in available qeusts and validate requested quest
         const quests = JSON.parse(fs.readFileSync(questFilePath, 'utf8'));
