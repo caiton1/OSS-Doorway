@@ -1,4 +1,4 @@
-{
+{    
     "responses": {
       "newIssue":"You have opened an issue, avaialble commands are: \nnew_user, creates new user\naccept <Q#>, accepts quests\ndrop, drops current quest\ndisplay, displays available quests\n",
       "invalidCommand":"Invalid command! Available commands: \n/new_user, creates new user\n/accept <Q#>, accepts quests\n/drop, drops current quest\n/display, displays available quests\n",
