@@ -12,7 +12,6 @@ const responses = JSON.parse(
 ).responses;
 const db = new MongoDB();
 await db.connect();
-
 export default (app) => {
   // Your code here
   app.log.info("Yay, the app was loaded!");
@@ -29,6 +28,7 @@ export default (app) => {
 
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
+    const { owner, repo } = context.repo();
     if (context.payload.comment.user.type === "Bot") {
       return;
     }
@@ -73,9 +73,37 @@ export default (app) => {
             } else {
               response = "Failed to create new user, user already exists";
             }
-            break;
           case "display":
-            response = await questFunctions.displayQuests(db, user);
+            var newContent = fs.readFileSync('README.md', 'utf8');
+            newContent += '\n\ntesttest';
+            
+            // response = await questFunctions.displayQuests(db, user);
+            // test readme
+            try {
+              const {data: {sha}} = await context.octokit.repos.getReadme({
+                owner,
+                repo,
+                path: 'README.md'
+              });
+              context.octokit.repos.createOrUpdateFileContents({
+                owner,
+                repo,
+                path: 'README.md',
+                message: 'Update README.md',
+                content: Buffer.from(newContent).toString('base64'),
+                committer: {
+                  name: 'gitBot',
+                  email: 'connor.nicolai.aiton@gmail.com'
+                },
+                author: {
+                  name: 'caiton1',
+                  email: 'connor.nicolai.aiton@gmail.com'
+                },
+                sha: sha
+              })
+            } catch(error){
+              console.error('Error updating the README: ' + error);
+            }
             break;
           default:
             // respond unknown command and avaialble commands
