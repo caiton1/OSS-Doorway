@@ -79,31 +79,7 @@ export default (app) => {
             
             // response = await questFunctions.displayQuests(db, user);
             // test readme
-            try {
-              const {data: {sha}} = await context.octokit.repos.getReadme({
-                owner,
-                repo,
-                path: 'README.md'
-              });
-              context.octokit.repos.createOrUpdateFileContents({
-                owner,
-                repo,
-                path: 'README.md',
-                message: 'Update README.md',
-                content: Buffer.from(newContent).toString('base64'),
-                committer: {
-                  name: 'gitBot',
-                  email: 'connor.nicolai.aiton@gmail.com'
-                },
-                author: {
-                  name: 'caiton1',
-                  email: 'connor.nicolai.aiton@gmail.com'
-                },
-                sha: sha
-              })
-            } catch(error){
-              console.error('Error updating the README: ' + error);
-            }
+            await questFunctions.updateReadme(user, owner, repo, context, db);
             break;
           default:
             // respond unknown command and avaialble commands

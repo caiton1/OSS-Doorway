@@ -323,15 +323,6 @@ async function validateTask(db, context, user) {
   await context.octokit.issues.createComment(issueComment);
 }
 
-export const questFunctions = {
-  acceptQuest,
-  removeQuest,
-  completeQuest,
-  completeTask,
-  displayQuests,
-  createQuestEnvironment,
-  validateTask,
-};
 
 // supporting functions for quest validation
 async function getIssueCount(repo) {
@@ -367,3 +358,71 @@ async function getPRCount(repo) {
     throw error;
   }
 }
+
+async function generateSVG(user, db){
+  // get user data
+
+  // svg styles
+
+  // svg content
+
+  // write to file
+}
+
+async function updateReadme(user, owner, repo, context, db)
+{
+  // generate new svg
+
+  // updated content, user card, quests and tasks, quest map
+  var newContent = `
+  Testing User Card Stats Here:<br>
+  ![User Draft Stats](/userCards/draft.svg)
+  
+  Quests:
+  [See current quest in issues](https://github.com/caiton1/probot-test/issues)
+  
+  Quests Map:
+  ![Quest Map](/photo/QuestMap.png)`
+  try {
+    const {data: {sha}} = await context.octokit.repos.getReadme({
+      owner,
+      repo,
+      path: 'README.md'
+    });
+    // todo: change
+    context.octokit.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: 'README.md',
+      message: 'Update README.md',
+      content: Buffer.from(newContent).toString('base64'),
+      committer: {
+        name: 'gitBot',
+        email: 'connor.nicolai.aiton@gmail.com'
+      },
+      author: {
+        name: 'caiton1',
+        email: 'connor.nicolai.aiton@gmail.com'
+      },
+      sha: sha
+    })
+  } catch(error){
+    console.error('Error updating the README: ' + error);
+  }
+}
+
+
+
+export const questFunctions = {
+  acceptQuest,
+  removeQuest,
+  completeQuest,
+  completeTask,
+  displayQuests,
+  createQuestEnvironment,
+  validateTask,
+  updateReadme,
+  getIssueCount,
+  getPRCount
+};
+
