@@ -6,4 +6,4 @@
   [See current quest in issues](https://github.com/caiton1/probot-test/issues)
   
   Quests Map:
-  ![Quest Map](/photo/QuestMap.png)
+  ![Quest Map](/map/QuestMap.png)
