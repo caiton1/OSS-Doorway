@@ -503,13 +503,13 @@ async function generateSVG(user, owner, repo, context, db){
                 <g transform="translate(0, 25)">
                     <g class="stagger" style="animation-delay: 600ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Points✨:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">2000</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">${userDocument.user_data.points}</text>
                     </g>
                 </g>
                 <g transform="translate(0, 50)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">User's Level 🌟:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">5</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${userDocument.user_data.xp/100}</text>
                     </g>
                 </g>
             </svg>
