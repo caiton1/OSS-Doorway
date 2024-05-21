@@ -60,7 +60,8 @@
             }
             .rank-circle {
                 stroke: #2f80ed;
-                stroke-dasharray: 80;
+                stroke-dasharray: 251.32741228718345;
+                stroke-dashoffset: 201.06192982974676;
                 fill: none;
                 stroke-width: 6;
                 stroke-linecap: round;
@@ -75,7 +76,7 @@
                     stroke-dashoffset: 251.32741228718345;
                 }
                 to {
-                    stroke-dashoffset: 151.89854433219094;
+                    stroke-dashoffset: 201.06192982974676;
                 }
             }
         
@@ -136,13 +137,13 @@
                 <g transform="translate(0, 25)">
                     <g class="stagger" style="animation-delay: 600ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Points✨:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">20</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">40</text>
                     </g>
                 </g>
                 <g transform="translate(0, 50)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">User's Level 🌟:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">0.2</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">0.4</text>
                     </g>
                 </g>
             </svg>
