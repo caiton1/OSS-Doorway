@@ -1,6 +1,6 @@
 
   User Stats:<br>
-  ![User Draft Stats](/userCards/draft.svg)
+  
 
   
 Quests:
