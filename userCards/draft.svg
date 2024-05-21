@@ -122,7 +122,7 @@
                 <circle class="rank-circle" cx="-10" cy="8" r="40" />
                 <g class="rank-text">
                     <text x="-5" y="3" alignment-baseline="central" dominant-baseline="central" text-anchor="middle" data-testid="level-rank-icon">25%</text>
-                    <text x="-2" y="-55" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" class="stat bold" fill="#2f80ed">User's Progress 🕹️</text>
+                    <text x="-2" y="-55" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" class="stat bold" fill="#2f80ed">User's Quest Progress 🕹️</text>
                 </g>
             </g>
     
@@ -130,13 +130,13 @@
                 <g transform="translate(0, 0)">
                     <g class="stagger" style="animation-delay: 450ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Quests Completed 🎲:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="stars">3</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="stars">0</text>
                     </g>
                 </g>
                 <g transform="translate(0, 25)">
                     <g class="stagger" style="animation-delay: 600ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Points✨:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">140</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">0</text>
                     </g>
                 </g>
                 <g transform="translate(0, 50)">
