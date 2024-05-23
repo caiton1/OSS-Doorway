@@ -20,10 +20,20 @@ export default (app) => {
 
   // issue command
   app.on("issues.opened", async (context) => {
+    const user = context.payload.issue.user;
+    if(user.type === "Bot" || user.login.includes('[bot]')){
+      return;
+    }
     const issueComment = context.issue({
       body: responses.newIssue,
     });
-    return context.octokit.issues.createComment(issueComment);
+    try{
+      context.octokit.issues.createComment(issueComment);
+    } catch(error){
+      console.error("Error creating a new issue: ", error);
+    }
+    
+    return;
   });
 
   app.on("issue_comment.created", async (context) => {
@@ -32,7 +42,7 @@ export default (app) => {
     if (context.payload.comment.user.type === "Bot") {
       return;
     }
-
+    
     // check if / command
     const comment = context.payload.comment.body;
     if (comment.startsWith("/")) {
@@ -75,9 +85,7 @@ export default (app) => {
             }
           case "display":
             var newContent = fs.readFileSync('README.md', 'utf8');
-            newContent += '\n\ntesttest';
             
-            // response = await questFunctions.displayQuests(db, user);
             // test readme
             await questFunctions.updateReadme(user, owner, repo, context, db);
             break;
@@ -85,10 +93,15 @@ export default (app) => {
             // respond unknown command and avaialble commands
             response = responses.invalidCommand;
             break;
-        }
+      }
         if (response !== "") {
           const issueComment = context.issue({ body: response });
-          await context.octokit.issues.createComment(issueComment);
+          try{
+            await context.octokit.issues.createComment(issueComment);
+          } catch(error){
+            console.error("Error creating issue comment: ", error );
+          }
+          
         }
       }
     } else {
