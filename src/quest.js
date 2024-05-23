@@ -70,21 +70,25 @@ async function removeQuest(db, user) {
 
 
 async function completeQuest(db, user, quest, context) {
+  console.log("completeQuest Called");
   try {
     const user_data = await db.downloadUserData(user);
 
     // user has the requested quest accepted 
     if (user_data.user_data.accepted && user_data.user_data.accepted[quest]) {
+      console.log("quest completed");
       const tasks_completed = Object.values(
         user_data.user_data.accepted[quest]
       ).every((task) => task.completed);  // all tasks completed
 
       // clear quest and task
       if (tasks_completed) {
+        console.log("all tasks completed");
         delete user_data.user_data.accepted[quest];
         if (!user_data.user_data.completed) {
           user_data.user_data.completed = [];
         }
+        console.log("attempting to push to completed")
         // add quest to users completed list
         user_data.user_data.completed.push(quest);
 
@@ -157,6 +161,7 @@ async function createQuestEnvironment(quest, task, context) {
   const { owner, repo } = context.repo();
   var issueComment = "";
   var response = questResponse;
+  var flag = false; // check for if task is selected
   // most will be creating an issue with multiple choice
   // quest 1 TODO: use another repo, use API enpoint to find issue numbers, include link to issues in the project
   if (quest === "Q1") {
@@ -164,38 +169,44 @@ async function createQuestEnvironment(quest, task, context) {
     // Find issue tracker
     if (task === "T1") {
       response = response.Task1.acceptQ1T1;
+      flag = true;
     }
     // find pull request menu
     else if (task === "T2") {
       response = response.Task2.acceptQ1T2;
+      flag = true;
     }
     // find the fork button
     else if (task === "T3") {
       response = response.Task3.acceptQ1T3;
+      flag = true;
     }
     // find the readme file
     else if (task === "T4") {
       response = response.Task4.acceptQ1T4;
+      flag = true;
     }
     // find the contributors
     else if (task === "T5") {
       response = response.Task5.acceptQ1T5;
+      flag = true;
     }
     issueComment = context.issue({
       body: response
     });
-    try{
-      // new issue for new task
-      await context.octokit.issues.create({
-        owner: owner,
-        repo: repo,
-        title: "❗ QUEST: " + task,
-        body: response
-      });
-    } catch(error){
-      console.error("Error creating new issue: ", error);
+    if(flag){
+      try{
+        // new issue for new task
+        await context.octokit.issues.create({
+          owner: owner,
+          repo: repo,
+          title: "❗ QUEST: " + task,
+          body: response
+        });
+      } catch(error){
+        console.error("Error creating new issue: ", error);
+      }
     }
-    
   }
 
   // quest 2
@@ -218,15 +229,14 @@ async function createQuestEnvironment(quest, task, context) {
 }
 
 async function validateTask(db, context, user) {
-  // quest 1
   const userData = await db.downloadUserData(user);
   // TODO: add exception handling
   const task = userData.user_data.current.task;
   const quest = userData.user_data.current.quest;
   var issueComment = context.payload.comment.body;
   var response = questResponse;
-  console.log(task, quest);
-  console.log(task === "T4")
+
+
   if (quest === "Q1") {
     response = response.Quest1;
     if (task === "T1") {
@@ -262,16 +272,18 @@ async function validateTask(db, context, user) {
         response = response.errorQ1T3;
       }
     } else if (task === "T4") {
+      response = response.Task4;
       // Check issue body for a hint about readme
       const hint = "c"; 
       if (issueComment.toLowerCase().includes(hint)) {
-          await completeTask(db, user, "Q1", "T4", context);  
           response = response.successQ1T4;
+          await completeTask(db, user, "Q1", "T4", context);  // fail here?
       } else {
           response = response.errorQ1T4;
       }
   }
    else if (task === "T5") {
+      response = response.Task5;
       // Check for valid contributor name
       const correctCount = 633 // TODO: fix, issue with this one
       if (issueComment.toLowerCase().includes(correctCount)) {
@@ -502,7 +514,7 @@ async function generateSVG(user, owner, repo, context, db){
                 <g transform="translate(0, 50)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">User's Level 🌟:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${Math.ceil(userDocument.user_data.xp/100)}</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${Math.floor(userDocument.user_data.xp/100) + 1}</text>
                     </g>
                 </g>
             </svg>
@@ -546,10 +558,10 @@ async function updateReadme(user, owner, repo, context, db)
   // updated content, user card, quests and tasks, quest map
   var newContent = `
   User Stats:<br>
-  ![User Draft Stats](/userCards/draft.svg)
+  ![User Draft Stats](/userCards/draft.svg?)
 
   `;
-  newContent += await displayQuests(user, db);
+  newContent += await displayQuests(user, db, context);
 
   try {
     const {data: {sha}} = await context.octokit.repos.getReadme({
@@ -579,9 +591,10 @@ async function updateReadme(user, owner, repo, context, db)
   }
 }
 
-async function displayQuests(user, db)
+async function displayQuests(user, db, context)
 {
   // get user data
+  const repo = context.issue();
   const userData = await db.downloadUserData(user);
   var task = '';
   var quest = '';
@@ -597,7 +610,7 @@ async function displayQuests(user, db)
   }
   var response = `
 Quests:
-[Go to issues page and create new issue](https://github.com/caiton1/probot-test/issues)
+[Go to issues page and create new issue](https://github.com/${repo.owner}/${repo.repo}/issues)
 1. type /new_user
 2. type /accept Q1
 
@@ -614,35 +627,35 @@ Quests:
   - Quest 1 - Exploring the Github World
 `;
     if(task === "T1"){
-    response += `    - Task 1 - Find the issue tracker
+    response += `    - Task 1 - [Find the issue tracker](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1})
     - Task 2 - Find the pull-request menu
     - Task 3 - Find the fork button
     - Task 4 - Find the readme file
     - Task 5 - Find the contributors`;
     }else if(task === "T2"){
-    response += `    - ~Task 1 - Find the issue tracker~
-    - Task 2 - Find the pull-request menu
+    response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
+    - Task 2 - [Find the pull-request menu](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1})
     - Task 3 - Find the fork button
     - Task 4 - Find the readme file
     - Task 5 - Find the contributors`;
     }else if(task === "T3"){
-    response += `    - ~Task 1 - Find the issue tracker~
-    - ~Task 2 - Find the pull-request menu~
-    - Task 3 - Find the fork button
+    response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
+    - ~Task 2 - Find the pull-request menu~ [COMPLETED]
+    - Task 3 - [Find the fork button](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1}) 
     - Task 4 - Find the readme file
     - Task 5 - Find the contributors`;
     }else if(task === "T4"){
-    response += `    - ~Task 1 - Find the issue tracker~
-    - ~Task 2 - Find the pull-request menu~
-    - ~Task 3 - Find the fork button~
-    - Task 4 - Find the readme file
+    response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED] 
+    - ~Task 2 - Find the pull-request menu~ [COMPLETED]
+    - ~Task 3 - Find the fork button~ [COMPLETED]
+    - Task 4 - [Find the readme file](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1})
     - Task 5 - Find the contributors`;
     }else if(task === "T5"){
-    response += `    - ~Task 1 - Find the issue tracker~
-    - ~Task 2 - Find the pull-request menu~
-    - ~Task 3 - Find the fork button~
-    - ~Task 4 - Find the readme file~
-    - Task 5 - Find the contributors`;
+    response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
+    - ~Task 2 - Find the pull-request menu~ [COMPLETED]
+    - ~Task 3 - Find the fork button~ [COMPLETED]
+    - ~Task 4 - Find the readme file~ [COMPLETED]
+    - Task 5 - [Find the contributors](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1})`;
     }
 
     if(completed !== '' && completed.includes('Q2')){

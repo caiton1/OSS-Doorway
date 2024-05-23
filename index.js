@@ -6,10 +6,10 @@ import { questFunctions } from "./src/quest.js";
 import { MongoDB } from "./src/database.js";
 import fs from "fs";
 const responseFilePath = "./src/response.json";
-
 const responses = JSON.parse(
   fs.readFileSync(responseFilePath, "utf-8")
 ).responses;
+
 const db = new MongoDB();
 await db.connect();
 export default (app) => {
