@@ -5,8 +5,8 @@
   
 Quests:
   - Quest 1 - Exploring the Github World
-    - Task 1 - [Find the issue tracker](https://github.com/caiton1/probot-test/issues/76)
-    - Task 2 - Find the pull-request menu
+    - ~Task 1 - Find the issue tracker~ [COMPLETED]
+    - Task 2 - [Find the pull-request menu](https://github.com/caiton1/probot-test/issues/83)
     - Task 3 - Find the fork button
     - Task 4 - Find the readme file
     - Task 5 - Find the contributors
