@@ -4,12 +4,10 @@
 
   
 Quests:
-  - Quest 1 - Exploring the Github World
-    - ~Task 1 - Find the issue tracker~ [COMPLETED]
-    - ~Task 2 - Find the pull-request menu~ [COMPLETED]
-    - ~Task 3 - Find the fork button~ [COMPLETED]
-    - ~Task 4 - Find the readme file~ [COMPLETED]
-    - Task 5 - [Find the contributors](https://github.com/caiton1/OSS-Doorway/issues/14)
-  - Quest 2 - Introducing yourself self to the community
+[Go to issues page and create new issue](https://github.com/caiton1/OSS-Doorway/issues)
+1. type /new_user
+2. type /accept Q1
 
-  - Quest 3 - Introducing yourself self to the community
+Quests Map:
+![Quest Map](/map/QuestMap.png)
+  
