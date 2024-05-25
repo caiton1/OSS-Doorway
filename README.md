@@ -3,12 +3,11 @@
   ![User Draft Stats](/userCards/draft.svg?)
 
   
-Quests:
-  - ~Quest 1 - Exploring the Github World~
-  - Quest 2 - Introducing yourself to the community
-    - Task 1 - [Choose an issue that you would like to work with](https://github.com/caiton1/OSS-Doorway/issues/2)
-    - Task 2 - Assign your user to work on the issue
-    - Task 3 - Post a comment in the issue introducing yourself
-    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
-    
-  - Quest 3 - Introducing yourself self to the community
+    Quests:
+      - ~Quest 1 - Exploring the Github World~
+      - ~Quest 2 - Introducing yourself to the community~
+      - Quest 3 - Making you first contribution
+       - Task 1 - Solve the issue (upload a file)
+    - Task 2 - Submit a pull request
+    - Task 3 - Post in the issue asking for someone to review it
+    - Task 4 - Close the issue
