@@ -314,7 +314,7 @@ async function validateTask(db, context, user) {
     } else if (task === "T5") {
       response = response.Task5;
       // Check for valid contributor name
-      const correctCount = 633; // TODO: fix, issue with this one
+      const correctCount = 633; // TODO: fix, just get the first contributor, change response to reflect this
       if (issueComment.toLowerCase().includes(correctCount)) {
         await completeTask(db, user, "Q1", "T5", context);
         response = response.successQ1T5;
@@ -326,47 +326,53 @@ async function validateTask(db, context, user) {
   // quest 2
   else if (quest === "Q2") {
     response = response.Quest2;
+    var user_data = await db.downloadUserData(user);
+    const selectedIssue = user_data.user_data.selectedIssue;
     // choose issue that you would like to work with
     if (task === "T1") {
       // check open issues
       response = response.Task1;
       const openIssueNums = await openIssues(repoName, context);
       console.log(issueComment);
-      if(openIssueNums.includes(Number(issueComment))){
+      if (openIssueNums.includes(Number(issueComment))) {
         response = response.successQ2T1;
         // add selected issue to database
-        var user_data = await db.downloadUserData(user);
-        user_data.user_data.selected_issue = Number(issueComment);
+        user_data.user_data.selectedIssue = Number(issueComment);
         await db.updateData(user_data);
         // complete task
         await completeTask(db, user, "Q2", "T1", context);
-      }
-      else{
+      } else {
         response = response.errorQ2T1;
       }
-    }
-    else if (task === "T2") { // TODO: bug, database does not have last task, also not deleting the selected issue
+    } else if (task === "T2") {
       response = response.Task2;
-      // retrieve selected issue
-      var user_data = await db.downloadUserData(user);
-      const selectedIssue = user_data.user_data.selected_issue
       // check assignee in selected issue
-      if(await checkAssignee(repoName, selectedIssue, user, context)){
-        // await completeTask(db, user, "Q2", "T2", context);
-        await delete user_data.user_data.selectedIssue;
-        await db.updateData(user_data);
+      if (await checkAssignee(repoName, selectedIssue, user, context)) {
+        await completeTask(db, user, "Q2", "T2", context);
         response = response.successQ2T2;
-      }else{
+      } else {
         response = response.errorQ2T2;
       }
+    } else if (task === "T3") {
+      response = response.Task3;
+      // check if user commented
+      if (await userCommentedInIssue(repoName, selectedIssue, user, context)) {
+        await completeTask(db, user, "Q2", "T3", context);
+        response = response.successQ2T3;
+      } else {
+        response = response.errorQ2T3;
+      }
+    } else if (task === "T4") {
+      response = response.Task4;
+      if (await isssueClosed(repoName, selected, context)) {
+        delete user_data.user_data.selectedIssue;
+        await db.updateData(user_data); // must update delete from outer scope before complete task otherwise overwrite
+        await completeTask(db, user, "Q2", "T4", context);
+        response = response.successQ2T4;
+      } else {
+        response = response.errorQ2T4;
+      }
     }
-    // check for reply
-    // assign user to work on issue
-    // check for user assign
-    // post a commnet in the issue introducing yourself
-    // check for comment contains hello or hi or name
-    // mention a contributor
-    // check issue for mention of a contributor
   }
   // quest 3
   else if (quest === "Q3") {
@@ -421,28 +427,85 @@ async function getPRCount(repo) {
   }
 }
 
-async function openIssues(repo, context){
-
+async function userCommentedInIssue(repo, issueNum, user, context) {
   try {
     const installationID = context.payload.installation.id;
     const accessToken = await context.octokit.auth({
       type: "installation",
       installationID,
     });
-    const response = await fetch(`https://api.github.com/repos/${repo}/issues?state=open`, {
+
+    const response = await context.octokit.request(
+      `GET /repos/${repo}/issues/${issueNum}/comments`,
+      {
         headers: {
-            'Authorization': `token ${accessToken.token}`,
-            'Accept': 'application/vnd.github.v3+json'
-        }
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+    const comments = response.data;
+
+    const userInComments = comments.some(
+      (comment) => comment.user.login === user
+    ); // find any instance of user commenting
+    console.log("User in comments of issue: ", userInComments); // sanity check
+    return userInComments;
+  } catch (error) {
+    console.error("Error finding user comment in issues: ", error);
+    return false;
+  }
+}
+
+async function openIssues(repo, context) {
+  try {
+    const installationID = context.payload.installation.id;
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
     });
+    const response = await fetch(
+      `https://api.github.com/repos/${repo}/issues?state=open`,
+      {
+        headers: {
+          Authorization: `token ${accessToken.token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      }
+    );
 
     const issues = await response.json();
-    const openIssueNumbers = issues.map(issue => issue.number);
+    const openIssueNumbers = issues.map((issue) => issue.number);
     console.log("Open issues", openIssueNumbers);
     return openIssueNumbers;
-  } catch (error){
+  } catch (error) {
     console.error(`Error getting open issues: ${error}`);
     return null;
+  }
+}
+
+async function isssueClosed(repo, issueNum, context) {
+  try {
+    const installationID = context.payload.installation.id;
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
+    });
+    const response = await fetch(
+      `https://api.github.com/repos/${repo}/issues/${issueNum}`,
+      {
+        headers: {
+          Authorization: `token ${accessToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      }
+    );
+
+    const issue = await response.json();
+    const isClosed = issue.state === "closed";
+    return isClosed;
+  } catch (error) {
+    console.error("Error checking if issue closed: ", error);
+    return false;
   }
 }
 

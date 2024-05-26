@@ -83,14 +83,9 @@ export default (app) => {
             } else {
               response = "Failed to create new user, user already exists";
             }
-          case "display":
-            // var newContent = fs.readFileSync('README.md', 'utf8');
-            
+          case "display": // TODO: name better            
             // test readme
-            //await questFunctions.updateReadme(user, owner, repo, context, db);
-
-            // test quest completion
-            await questFunctions.completeQuest(db, user, "Q1", context);
+            await questFunctions.updateReadme(user, owner, repo, context, db);
             break;
           default:
             // respond unknown command and avaialble commands

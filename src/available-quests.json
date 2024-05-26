@@ -41,12 +41,17 @@
       "xp": 25
     },
     "T2": {
-      "desc": "Post a comment in the issue introducing yourself",
+      "desc": "Assign your user to work on the issue",
       "points": 25,
       "xp": 25
     },
     "T3": {
-      "desc": "Mention a contributor",
+      "desc": "Post a comment in the issue introducing yourself",
+      "points": 25,
+      "xp": 25
+    },
+    "T4": {
+      "desc": "Mention a contributor that has most recently been active in the project to help you to solve the issue",
       "points": 25,
       "xp": 25
     }
