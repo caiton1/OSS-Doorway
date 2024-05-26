@@ -1,13 +1,13 @@
 import fs from "fs";
 const questFilePath = "./src/available-quests.json";
 const responseFilePath = "./src/response.json";
-const configFilePath = "./src/config.json"
+const configFilePath = "./src/config.json";
 const questResponse = JSON.parse(fs.readFileSync(responseFilePath, "utf-8"));
 const repoName = JSON.parse(fs.readFileSync(configFilePath, "utf-8")).repo;
 const userName = JSON.parse(fs.readFileSync(configFilePath, "utf-8")).user;
 
 async function acceptQuest(context, db, user, quest) {
-  const {owner, repo} = context.repo();
+  const { owner, repo } = context.repo();
   try {
     // Read in available qeusts and validate requested quest
     const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
@@ -32,7 +32,7 @@ async function acceptQuest(context, db, user, quest) {
           user_data.user_data.completion = 0;
         }
         await db.updateData(user_data);
-        
+
         await createQuestEnvironment(quest, "T1", context);
         // update character stats
         await updateReadme(user, owner, repo, context, db);
@@ -68,39 +68,36 @@ async function removeQuest(db, user) {
   }
 }
 
-
 async function completeQuest(db, user, quest, context) {
-  console.log("completeQuest Called");
   try {
     const user_data = await db.downloadUserData(user);
-
-    // user has the requested quest accepted 
+    console.log(user_data);
+    // user has the requested quest accepted
     if (user_data.user_data.accepted && user_data.user_data.accepted[quest]) {
-      console.log("quest completed");
       const tasks_completed = Object.values(
         user_data.user_data.accepted[quest]
-      ).every((task) => task.completed);  // all tasks completed
+      ).every((task) => task.completed); // all tasks completed
 
       // clear quest and task
       if (tasks_completed) {
-        console.log("all tasks completed");
         delete user_data.user_data.accepted[quest];
         if (!user_data.user_data.completed) {
           user_data.user_data.completed = [];
         }
-        console.log("attempting to push to completed")
         // add quest to users completed list
         user_data.user_data.completed.push(quest);
-
         // update user data in DB
         await db.updateData(user_data);
+
+        // reset quest accepted and current
+        removeQuest(db, user);
+
         return true; // Quest successfully completed
       }
     }
   } catch (error) {
     console.error("Error completing quest:", error);
   }
-
   return false; // Quest not completed
 }
 
@@ -113,53 +110,61 @@ async function completeTask(db, user, quest, task, context) {
     const points = quests[quest][task].points;
     const xp = quests[quest][task].xp;
 
-    if (user_data.user_data.accepted && user_data.user_data.accepted[quest] && user_data.user_data.accepted[quest][task]) {
+    if (
+      user_data.user_data.accepted &&
+      user_data.user_data.accepted[quest] &&
+      user_data.user_data.accepted[quest][task]
+    ) {
       user_data.user_data.accepted[quest][task].completed = true;
-      user_data.user_data.points += points; 
+      user_data.user_data.points += points;
       user_data.user_data.xp += xp;
 
       const tasks = Object.keys(quests[quest]).filter((t) => t !== "metadata");
       const taskIndex = tasks.indexOf(task);
 
       user_data.user_data.completion = (taskIndex + 1) / tasks.length;
-      user_data.user_data.completion = Math.round(user_data.user_data.completion * 100) / 100; // two decimal places
+      user_data.user_data.completion =
+        Math.round(user_data.user_data.completion * 100) / 100; // two decimal places
 
       if (taskIndex !== -1 && taskIndex < tasks.length - 1) {
         const nextTask = tasks[taskIndex + 1];
         user_data.user_data.current.task = nextTask;
+        await db.updateData(user_data);
       } else {
+        await db.updateData(user_data);
         user_data.user_data.current.task = null;
         await completeQuest(db, user, quest, context);
       }
-
-      await db.updateData(user_data);
 
       await context.octokit.issues.update({
         owner: owner,
         repo: repo,
         issue_number: context.issue().issue_number,
-        state: 'closed'
+        state: "closed",
       });
 
       if (user_data.user_data.current) {
-        await createQuestEnvironment(quest, user_data.user_data.current.task, context);
+        await createQuestEnvironment(
+          quest,
+          user_data.user_data.current.task,
+          context
+        );
       }
 
       await updateReadme(user, owner, repo, context, db);
-      return true; 
+      return true;
     }
-    return false; 
+    return false;
   } catch (error) {
     console.error("Error completing task:", error);
     return false;
   }
 }
 
-
-
 async function createQuestEnvironment(quest, task, context) {
-  const { owner, repo } = context.repo();
+  console.log(`createQuestEnvironment called with: ${quest}, ${task}`);
   var issueComment = "";
+  const { owner, repo } = context.repo();
   var response = questResponse;
   var flag = false; // check for if task is selected
   // most will be creating an issue with multiple choice
@@ -191,41 +196,69 @@ async function createQuestEnvironment(quest, task, context) {
       response = response.Task5.acceptQ1T5;
       flag = true;
     }
-    issueComment = context.issue({
-      body: response
-    });
-    if(flag){
-      try{
-        // new issue for new task
-        await context.octokit.issues.create({
-          owner: owner,
-          repo: repo,
-          title: "❗ QUEST: " + task,
-          body: response
-        });
-      } catch(error){
-        console.error("Error creating new issue: ", error);
-      }
+  }
+  // quest 2 generate environment where needed
+  else if (quest === "Q2") {
+    response = response.Quest2;
+    // choose issue that you would like to work with
+    if (task === "T1") {
+      // generate issues, with tags
+      response = response.Task1.acceptQ2T1;
+      flag = true;
+    } else if (task === "T2") {
+      // assign user to work on issue
+      response = response.Task2.acceptQ2T2;
+      flag = true;
+    } else if (task === "T3") {
+      // post a commnet in the issue introducing yourself
+      response = response.Task3.acceptQ2T3;
+      flag = true;
+    } else if (task === "T4") {
+      // mention a contributor
+      response = response.Task4.acceptQ2T4;
+      flag = true;
     }
   }
-
-  // quest 2
-  // choose issue that you would like to work with
-  // generate issues, with tags
-  // assign user to work on issue
-
-  // post a commnet in the issue introducing yourself
-
-  // mention a contributor
-
   // quest 3
-  // solve issue (upload a file)
-
-  // submit pull request
-
-  // post in the issue askingfor someone to review
-
-  // close issue
+  else if (quest === "Q3") {
+    response = response.Quest3;
+    // solve issue (upload a file)
+    if (task === "T1") {
+      response = response.Task1.acceptQ3T1;
+      flag = true;
+    }
+    // submit pull request
+    else if (task === "T2") {
+      response = response.Task2.acceptQ3T2;
+      flag = true;
+    }
+    // post in the issue askingfor someone to review
+    else if (task === "T3") {
+      response = response.Task3.acceptQ3T3;
+      flag = true;
+    }
+    // close issue
+    else if (task === "T4") {
+      response = response.Task4.acceptQ3T4;
+      flag = true;
+    }
+  }
+  issueComment = context.issue({
+    body: response,
+  });
+  if (flag) {
+    try {
+      // new issue for new task
+      await context.octokit.issues.create({
+        owner: owner,
+        repo: repo,
+        title: "❗ QUEST: " + task,
+        body: response,
+      });
+    } catch (error) {
+      console.error("Error creating new issue: ", error);
+    }
+  }
 }
 
 async function validateTask(db, context, user) {
@@ -236,7 +269,6 @@ async function validateTask(db, context, user) {
   var issueComment = context.payload.comment.body;
   var response = questResponse;
 
-
   if (quest === "Q1") {
     response = response.Quest1;
     if (task === "T1") {
@@ -246,9 +278,7 @@ async function validateTask(db, context, user) {
       if (issueCount !== null && context.payload.comment.body == issueCount) {
         response = response.successQ1T1;
         await completeTask(db, user, "Q1", "T1", context);
-      }
-      else
-      {
+      } else {
         response = response.errorQ1T1;
       }
     } else if (task === "T2") {
@@ -274,20 +304,18 @@ async function validateTask(db, context, user) {
     } else if (task === "T4") {
       response = response.Task4;
       // Check issue body for a hint about readme
-      const hint = "c"; 
+      const hint = "c";
       if (issueComment.toLowerCase().includes(hint)) {
-          response = response.successQ1T4;
-          await completeTask(db, user, "Q1", "T4", context);  // fail here?
+        response = response.successQ1T4;
+        await completeTask(db, user, "Q1", "T4", context); // fail here?
       } else {
-          response = response.errorQ1T4;
+        response = response.errorQ1T4;
       }
-  }
-   else if (task === "T5") {
+    } else if (task === "T5") {
       response = response.Task5;
       // Check for valid contributor name
-      const correctCount = 633 // TODO: fix, issue with this one
+      const correctCount = 633; // TODO: fix, issue with this one
       if (issueComment.toLowerCase().includes(correctCount)) {
-
         await completeTask(db, user, "Q1", "T5", context);
         response = response.successQ1T5;
       } else {
@@ -297,7 +325,41 @@ async function validateTask(db, context, user) {
   }
   // quest 2
   else if (quest === "Q2") {
+    response = response.Quest2;
     // choose issue that you would like to work with
+    if (task === "T1") {
+      // check open issues
+      response = response.Task1;
+      const openIssueNums = await openIssues(repoName, context);
+      console.log(issueComment);
+      if(openIssueNums.includes(Number(issueComment))){
+        response = response.successQ2T1;
+        // add selected issue to database
+        var user_data = await db.downloadUserData(user);
+        user_data.user_data.selected_issue = Number(issueComment);
+        await db.updateData(user_data);
+        // complete task
+        await completeTask(db, user, "Q2", "T1", context);
+      }
+      else{
+        response = response.errorQ2T1;
+      }
+    }
+    else if (task === "T2") { // TODO: bug, database does not have last task, also not deleting the selected issue
+      response = response.Task2;
+      // retrieve selected issue
+      var user_data = await db.downloadUserData(user);
+      const selectedIssue = user_data.user_data.selected_issue
+      // check assignee in selected issue
+      if(await checkAssignee(repoName, selectedIssue, user, context)){
+        // await completeTask(db, user, "Q2", "T2", context);
+        await delete user_data.user_data.selectedIssue;
+        await db.updateData(user_data);
+        response = response.successQ2T2;
+      }else{
+        response = response.errorQ2T2;
+      }
+    }
     // check for reply
     // assign user to work on issue
     // check for user assign
@@ -318,26 +380,25 @@ async function validateTask(db, context, user) {
     // check for issue delete
   }
   issueComment = context.issue({
-    body: response
+    body: response,
   });
   await context.octokit.issues.createComment(issueComment);
 }
 
-
 // supporting functions for quest validation
 async function getIssueCount(repo) {
   try {
-      const response = await fetch(`https://api.github.com/repos/${repo}/issues`);
-      if (response.ok) {
-          const issues = await response.json();
-          return issues.length;
-      } else {
-          console.error("Error:", response.status);
-          return null;
-      }
-  } catch (error) {
-      console.error("Error:", error);
+    const response = await fetch(`https://api.github.com/repos/${repo}/issues`);
+    if (response.ok) {
+      const issues = await response.json();
+      return issues.length;
+    } else {
+      console.error("Error:", response.status);
       return null;
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return null;
   }
 }
 
@@ -345,21 +406,80 @@ async function getPRCount(repo) {
   try {
     const response = await fetch(`https://api.github.com/repos/${repo}/pulls`);
     const data = await response.json();
-    
+
     // Check if the response is an array (list of pull requests)
     if (Array.isArray(data)) {
       // The length of the array gives the number of pull requests
+      console.log(data.length);
       return data.length;
     } else {
-      throw new Error('Unexpected response format');
+      throw new Error("Unexpected response format");
     }
   } catch (error) {
-    console.error('Error fetching pull requests:', error);
+    console.error("Error fetching pull requests:", error);
     throw error;
   }
 }
 
-async function generateSVG(user, owner, repo, context, db){
+async function openIssues(repo, context){
+
+  try {
+    const installationID = context.payload.installation.id;
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
+    });
+    const response = await fetch(`https://api.github.com/repos/${repo}/issues?state=open`, {
+        headers: {
+            'Authorization': `token ${accessToken.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+        }
+    });
+
+    const issues = await response.json();
+    const openIssueNumbers = issues.map(issue => issue.number);
+    console.log("Open issues", openIssueNumbers);
+    return openIssueNumbers;
+  } catch (error){
+    console.error(`Error getting open issues: ${error}`);
+    return null;
+  }
+}
+
+async function checkAssignee(repo, issueNum, user, context) {
+  try {
+    const installationID = context.payload.installation.id;
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
+    });
+
+    const response = await context.octokit.request(
+      `GET /repos/${repo}/issues/${issueNum}`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+
+    const issue = response.data;
+    // assignees
+    const assignees = issue.assignees.map((assignee) => assignee.login);
+
+    console.log(`Assignees: ${assignees.join(", ")}`);
+    // is user in one of the assignees
+    if (assignees.includes(user)) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error("Error checking assignees:" + error);
+  }
+}
+
+async function generateSVG(user, owner, repo, context, db) {
   try {
     // get user data
     const userDocument = await db.downloadUserData(user);
@@ -367,7 +487,7 @@ async function generateSVG(user, owner, repo, context, db){
     const radius = 40;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference * (1 - percentage / 100);
-    
+
     // svg content
     const svgContent = `
     <svg
@@ -502,57 +622,65 @@ async function generateSVG(user, owner, repo, context, db){
                 <g transform="translate(0, 0)">
                     <g class="stagger" style="animation-delay: 450ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Quests Completed 🎲:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="stars">${(userDocument.user_data.completed && userDocument.user_data.completed !== undefined) ? userDocument.user_data.completed : 0}</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="stars">${
+                          userDocument.user_data.completed &&
+                          userDocument.user_data.completed !== undefined
+                            ? userDocument.user_data.completed
+                            : 0
+                        }</text>
                     </g>
                 </g>
                 <g transform="translate(0, 25)">
                     <g class="stagger" style="animation-delay: 600ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Points✨:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">${userDocument.user_data.points}</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">${
+                          userDocument.user_data.points
+                        }</text>
                     </g>
                 </g>
                 <g transform="translate(0, 50)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">User's Level 🌟:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${Math.floor(userDocument.user_data.xp/100) + 1}</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${
+                          Math.floor(userDocument.user_data.xp / 100) + 1
+                        }</text>
                     </g>
                 </g>
             </svg>
         </g>
     </svg>
     `;
-  // write to file
-  const{data:{sha}} = await context.octokit.repos.getContent({
-    owner,
-    repo,
-    path: 'userCards/draft.svg'
-  });
-  // todo: change
-  context.octokit.repos.createOrUpdateFileContents({
-    owner,
-    repo,
-    path: 'userCards/draft.svg',
-    message: 'Update draft.svg',
-    content: Buffer.from(svgContent).toString('base64'),
-    committer: {
-      name: 'gitBot',
-      email: 'connor.nicolai.aiton@gmail.com'
-    },
-    author: {
-      name: 'caiton1',
-      email: 'connor.nicolai.aiton@gmail.com'
-    },
-    sha: sha
-  });
-
-  } catch(error) {
-    console.error('Error generating SVG:', error);
+    // write to file
+    const {
+      data: { sha },
+    } = await context.octokit.repos.getContent({
+      owner,
+      repo,
+      path: "userCards/draft.svg",
+    });
+    // todo: change
+    context.octokit.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: "userCards/draft.svg",
+      message: "Update draft.svg",
+      content: Buffer.from(svgContent).toString("base64"),
+      committer: {
+        name: "gitBot",
+        email: "connor.nicolai.aiton@gmail.com",
+      },
+      author: {
+        name: "caiton1",
+        email: "connor.nicolai.aiton@gmail.com",
+      },
+      sha: sha,
+    });
+  } catch (error) {
+    console.error("Error generating SVG:", error);
   }
-  
 }
 
-async function updateReadme(user, owner, repo, context, db)
-{
+async function updateReadme(user, owner, repo, context, db) {
   // generate new svg
   await generateSVG(user, owner, repo, context, db);
   // updated content, user card, quests and tasks, quest map
@@ -564,48 +692,49 @@ async function updateReadme(user, owner, repo, context, db)
   newContent += await displayQuests(user, db, context);
 
   try {
-    const {data: {sha}} = await context.octokit.repos.getReadme({
+    const {
+      data: { sha },
+    } = await context.octokit.repos.getReadme({
       owner,
       repo,
-      path: 'README.md'
+      path: "README.md",
     });
     // todo: change
     context.octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
-      path: 'README.md',
-      message: 'Update README.md',
-      content: Buffer.from(newContent).toString('base64'),
+      path: "README.md",
+      message: "Update README.md",
+      content: Buffer.from(newContent).toString("base64"),
       committer: {
-        name: 'gitBot',
-        email: 'connor.nicolai.aiton@gmail.com'
+        name: "gitBot",
+        email: "connor.nicolai.aiton@gmail.com",
       },
       author: {
-        name: 'caiton1',
-        email: 'connor.nicolai.aiton@gmail.com'
+        name: "caiton1",
+        email: "connor.nicolai.aiton@gmail.com",
       },
-      sha: sha
+      sha: sha,
     });
-  } catch(error){
-    console.error('Error updating the README: ' + error);
+  } catch (error) {
+    console.error("Error updating the README: " + error);
   }
 }
 
-async function displayQuests(user, db, context)
-{
+async function displayQuests(user, db, context) {
   // get user data
   const repo = context.issue();
   const userData = await db.downloadUserData(user);
-  var task = '';
-  var quest = '';
-  var completed = '';
+  var task = "";
+  var quest = "";
+  var completed = "";
   // TODO: add exception handling
-  if(userData.user_data.current !== undefined){
+  if (userData.user_data.current !== undefined) {
     task = userData.user_data.current.task;
     quest = userData.user_data.current.quest;
   }
 
-  if(userData.user_data.completed !== undefined){
+  if (userData.user_data.completed !== undefined) {
     completed = userData.user_data.completed;
   }
   var response = `
@@ -621,62 +750,144 @@ Quests Map:
   // generate string based on quest
 
   // TODO, add map link also make more efficient, because this is ew
-  if(quest === "Q1"){
+  if (quest === "Q1") {
     response = `
 Quests:
   - Quest 1 - Exploring the Github World
 `;
-    if(task === "T1"){
-    response += `    - Task 1 - [Find the issue tracker](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1})
+    if (task === "T1") {
+      response += `    - Task 1 - [Find the issue tracker](https://github.com/${
+        repo.owner
+      }/${repo.repo}/issues/${repo.issue_number + 1})
     - Task 2 - Find the pull-request menu
     - Task 3 - Find the fork button
     - Task 4 - Find the readme file
     - Task 5 - Find the contributors`;
-    }else if(task === "T2"){
-    response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
-    - Task 2 - [Find the pull-request menu](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1})
+    } else if (task === "T2") {
+      response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
+    - Task 2 - [Find the pull-request menu](https://github.com/${repo.owner}/${
+        repo.repo
+      }/issues/${repo.issue_number + 1})
     - Task 3 - Find the fork button
     - Task 4 - Find the readme file
     - Task 5 - Find the contributors`;
-    }else if(task === "T3"){
-    response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
+    } else if (task === "T3") {
+      response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
     - ~Task 2 - Find the pull-request menu~ [COMPLETED]
-    - Task 3 - [Find the fork button](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1}) 
+    - Task 3 - [Find the fork button](https://github.com/${repo.owner}/${
+        repo.repo
+      }/issues/${repo.issue_number + 1}) 
     - Task 4 - Find the readme file
     - Task 5 - Find the contributors`;
-    }else if(task === "T4"){
-    response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED] 
+    } else if (task === "T4") {
+      response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED] 
     - ~Task 2 - Find the pull-request menu~ [COMPLETED]
     - ~Task 3 - Find the fork button~ [COMPLETED]
-    - Task 4 - [Find the readme file](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1})
+    - Task 4 - [Find the readme file](https://github.com/${repo.owner}/${
+        repo.repo
+      }/issues/${repo.issue_number + 1})
     - Task 5 - Find the contributors`;
-    }else if(task === "T5"){
-    response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
+    } else if (task === "T5") {
+      response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
     - ~Task 2 - Find the pull-request menu~ [COMPLETED]
     - ~Task 3 - Find the fork button~ [COMPLETED]
     - ~Task 4 - Find the readme file~ [COMPLETED]
-    - Task 5 - [Find the contributors](https://github.com/${repo.owner}/${repo.repo}/issues/${repo.issue_number + 1})`;
+    - Task 5 - [Find the contributors](https://github.com/${repo.owner}/${
+        repo.repo
+      }/issues/${repo.issue_number + 1})`;
     }
 
-    if(completed !== '' && completed.includes('Q2')){
-      response += '\n  - ~Quest 2 - Introducing yourself self to the community~\n'; 
+    if (completed !== "" && completed.includes("Q2")) {
+      response +=
+        "\n  - ~Quest 2 - Introducing yourself self to the community~\n";
+    } else {
+      response +=
+        "\n  - Quest 2 - Introducing yourself self to the community\n";
     }
-    else{
-      response += '\n  - Quest 2 - Introducing yourself self to the community\n'; 
+    if (completed !== "" && completed.includes("Q3")) {
+      response +=
+        "\n  - ~Quest 3 - Introducing yourself self to the community~\n";
+    } else {
+      response +=
+        "\n  - Quest 3 - Introducing yourself self to the community\n";
     }
-    if(completed !== '' && completed.includes('Q3')){
-      response += '\n  - ~Quest 3 - Introducing yourself self to the community~\n';
+  } else if (quest === "Q2") {
+    response = `
+Quests:
+  - ~Quest 1 - Exploring the Github World~
+  - Quest 2 - Introducing yourself to the community
+`;
+    if (task === "T1") {
+      response += `    - Task 1 - [Choose an issue that you would like to work with](https://github.com/${
+        repo.owner
+      }/${repo.repo}/issues/${repo.issue_number + 1})
+    - Task 2 - Assign your user to work on the issue
+    - Task 3 - Post a comment in the issue introducing yourself
+    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
+    `;
+    } else if (task === "T2") {
+      response += `    - ~Task 1 - Choose an issue that you would like to work with~ [COMPLETED]
+    - Task 2 - [Assign your user to work on the issue](https://github.com/${
+      repo.owner
+    }/${repo.repo}/issues/${repo.issue_number + 1})
+    - Task 3 - Post a comment in the issue introducing yourself
+    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
+    `;
+    } else if (task === "T3") {
+      response += `    - ~Task 1 - Choose an issue that you would like to work with~ [COMPLETED]
+    - ~Task 2 - Assign your user to work on the issue~ [COMPLETED]
+    - Task 3 - [Post a comment in the issue introducing yourself](https://github.com/${
+      repo.owner
+    }/${repo.repo}/issues/${repo.issue_number + 1})
+    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
+    `;
+    } else if (task === "T4") {
+      response += `    - ~Task 1 - Choose an issue that you would like to work with~ [COMPLETED]
+    - ~Task 2 - Assign your user to work on the issue~ [COMPLETED]
+    - ~Task 3 - Post a comment in the issue introducing yourself~ [COMPLETED]
+    - Task 4 - [Mention a contributor that has most recently been active in the project to help you solve the issue](https://github.com/${
+      repo.owner
+    }/${repo.repo}/issues/${repo.issue_number + 1})
+    `;
     }
-    else{
-      response += '\n  - Quest 3 - Introducing yourself self to the community\n';
-    }
-  } else if(quest === "Q2"){
     // quest 2 and its tasks
-  } else if(quest === "Q3"){
+    if (completed !== "" && completed.includes("Q3")) {
+      response +=
+        "\n  - ~Quest 3 - Introducing yourself self to the community~\n";
+    } else {
+      response +=
+        "\n  - Quest 3 - Introducing yourself self to the community\n";
+    }
+  } else if (quest === "Q3") {
     // quest 3 and its tasks
+    response = `
+    Quests:
+      - ~Quest 1 - Exploring the Github World~
+      - ~Quest 2 - Introducing yourself to the community~
+      - Quest 3 - Making you first contribution
+    `;
+    if (task === "T1") {
+      response += `   - Task 1 - Solve the issue (upload a file)
+    - Task 2 - Submit a pull request
+    - Task 3 - Post in the issue asking for someone to review it
+    - Task 4 - Close the issue`;
+    } else if (task === "T2") {
+      response += `   - Task 1 - Solve the issue (upload a file)
+    - Task 2 - Submit a pull request
+    - Task 3 - Post in the issue asking for someone to review it
+    - Task 4 - Close the issue`;
+    } else if (task === "T3") {
+      response += `   - Task 1 - Solve the issue (upload a file)
+    - Task 2 - Submit a pull request
+    - Task 3 - Post in the issue asking for someone to review it
+    - Task 4 - Close the issue`;
+    } else if (task === "T4") {
+      response += `   - Task 1 - Solve the issue (upload a file)
+    - Task 2 - Submit a pull request
+    - Task 3 - Post in the issue asking for someone to review it
+    - Task 4 - Close the issue`;
+    }
   }
-
-
   return response;
   // return new string
 }
@@ -691,6 +902,5 @@ export const questFunctions = {
   validateTask,
   updateReadme,
   getIssueCount,
-  getPRCount
+  getPRCount,
 };
-
