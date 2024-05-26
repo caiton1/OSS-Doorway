@@ -4,8 +4,10 @@
 
   
 Quests:
-  - Quest 1 - Exploring the Github World
+[Go to issues page and create new issue](https://github.com/caiton1/OSS-Doorway/issues)
+1. type /new_user
+2. type /accept Q1
 
-  - Quest 2 - Introducing yourself self to the community
-
-  - Quest 3 - Introducing yourself self to the community
+Quests Map:
+![Quest Map](/map/QuestMap.png)
+  
