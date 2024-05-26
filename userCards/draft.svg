@@ -61,7 +61,7 @@
             .rank-circle {
                 stroke: #2f80ed;
                 stroke-dasharray: 251.32741228718345;
-                stroke-dashoffset: 168.3893662324129;
+                stroke-dashoffset: 82.93804605477052;
                 fill: none;
                 stroke-width: 6;
                 stroke-linecap: round;
@@ -76,7 +76,7 @@
                     stroke-dashoffset: 251.32741228718345;
                 }
                 to {
-                    stroke-dashoffset: 168.3893662324129;
+                    stroke-dashoffset: 82.93804605477052;
                 }
             }
         
@@ -122,7 +122,7 @@
                 <circle class="rank-circle-rim" cx="-10" cy="8" r="40" />
                 <circle class="rank-circle" cx="-10" cy="8" r="40" />
                 <g class="rank-text">
-                    <text x="-5" y="3" alignment-baseline="central" dominant-baseline="central" text-anchor="middle" data-testid="level-rank-icon">33%</text>
+                    <text x="-5" y="3" alignment-baseline="central" dominant-baseline="central" text-anchor="middle" data-testid="level-rank-icon">67%</text>
                     <text x="-2" y="-55" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" class="stat bold" fill="#2f80ed">User's Quest Progress 🕹️</text>
                 </g>
             </g>
@@ -137,13 +137,13 @@
                 <g transform="translate(0, 25)">
                     <g class="stagger" style="animation-delay: 600ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Points✨:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">175</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">200</text>
                     </g>
                 </g>
                 <g transform="translate(0, 50)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">User's Level 🌟:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">2</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">3</text>
                     </g>
                 </g>
             </svg>
