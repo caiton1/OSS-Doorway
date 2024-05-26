@@ -16,7 +16,7 @@ async function acceptQuest(context, db, user, quest) {
       if (!user_data.user_data.accepted) {
         user_data.user_data.accepted = {};
       }
-      // if user has accepted quest
+      // if user has not accepted quest
       if (!Object.keys(user_data.user_data.accepted).length) {
         user_data.user_data.accepted[quest] = {};
         // add list of tasks to user in database
@@ -71,7 +71,6 @@ async function removeQuest(db, user) {
 async function completeQuest(db, user, quest, context) {
   try {
     const user_data = await db.downloadUserData(user);
-    console.log(user_data);
     // user has the requested quest accepted
     if (user_data.user_data.accepted && user_data.user_data.accepted[quest]) {
       const tasks_completed = Object.values(
@@ -162,7 +161,6 @@ async function completeTask(db, user, quest, task, context) {
 }
 
 async function createQuestEnvironment(quest, task, context) {
-  console.log(`createQuestEnvironment called with: ${quest}, ${task}`);
   var issueComment = "";
   const { owner, repo } = context.repo();
   var response = questResponse;
@@ -333,7 +331,6 @@ async function validateTask(db, context, user) {
       // check open issues
       response = response.Task1;
       const openIssueNums = await openIssues(repoName, context);
-      console.log(issueComment);
       if (openIssueNums.includes(Number(issueComment))) {
         response = response.successQ2T1;
         // add selected issue to database
@@ -364,7 +361,7 @@ async function validateTask(db, context, user) {
       }
     } else if (task === "T4") {
       response = response.Task4;
-      if (await isssueClosed(repoName, selected, context)) {
+      if (await issueClosed(repoName, selectedIssue, context)) {
         delete user_data.user_data.selectedIssue;
         await db.updateData(user_data); // must update delete from outer scope before complete task otherwise overwrite
         await completeTask(db, user, "Q2", "T4", context);
@@ -416,7 +413,6 @@ async function getPRCount(repo) {
     // Check if the response is an array (list of pull requests)
     if (Array.isArray(data)) {
       // The length of the array gives the number of pull requests
-      console.log(data.length);
       return data.length;
     } else {
       throw new Error("Unexpected response format");
@@ -448,7 +444,6 @@ async function userCommentedInIssue(repo, issueNum, user, context) {
     const userInComments = comments.some(
       (comment) => comment.user.login === user
     ); // find any instance of user commenting
-    console.log("User in comments of issue: ", userInComments); // sanity check
     return userInComments;
   } catch (error) {
     console.error("Error finding user comment in issues: ", error);
@@ -475,7 +470,6 @@ async function openIssues(repo, context) {
 
     const issues = await response.json();
     const openIssueNumbers = issues.map((issue) => issue.number);
-    console.log("Open issues", openIssueNumbers);
     return openIssueNumbers;
   } catch (error) {
     console.error(`Error getting open issues: ${error}`);
@@ -483,7 +477,7 @@ async function openIssues(repo, context) {
   }
 }
 
-async function isssueClosed(repo, issueNum, context) {
+async function issueClosed(repo, issueNum, context) {
   try {
     const installationID = context.payload.installation.id;
     const accessToken = await context.octokit.auth({
@@ -494,7 +488,7 @@ async function isssueClosed(repo, issueNum, context) {
       `https://api.github.com/repos/${repo}/issues/${issueNum}`,
       {
         headers: {
-          Authorization: `token ${accessToken}`,
+          Authorization: `token ${accessToken.token}`,
           Accept: "application/vnd.github.v3+json",
         },
       }
@@ -530,7 +524,6 @@ async function checkAssignee(repo, issueNum, user, context) {
     // assignees
     const assignees = issue.assignees.map((assignee) => assignee.login);
 
-    console.log(`Assignees: ${assignees.join(", ")}`);
     // is user in one of the assignees
     if (assignees.includes(user)) {
       return true;
