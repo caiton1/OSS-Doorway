@@ -4,7 +4,6 @@ const responseFilePath = "./src/response.json";
 const configFilePath = "./src/config.json";
 const questResponse = JSON.parse(fs.readFileSync(responseFilePath, "utf-8"));
 const repoName = JSON.parse(fs.readFileSync(configFilePath, "utf-8")).repo;
-const userName = JSON.parse(fs.readFileSync(configFilePath, "utf-8")).user;
 
 async function acceptQuest(context, db, user, quest) {
   const { owner, repo } = context.repo();
@@ -312,8 +311,9 @@ async function validateTask(db, context, user) {
     } else if (task === "T5") {
       response = response.Task5;
       // Check for valid contributor name
-      const correctCount = 633; // TODO: fix, just get the first contributor, change response to reflect this
-      if (issueComment.toLowerCase().includes(correctCount)) {
+      // const correctAnswer = await getFirstContributor(repoName, context);
+      const correctAnswer = await countContributors(repoName, context);
+      if (issueComment.toLowerCase() == correctAnswer) {
         await completeTask(db, user, "Q1", "T5", context);
         response = response.successQ1T5;
       } else {
@@ -361,7 +361,7 @@ async function validateTask(db, context, user) {
       }
     } else if (task === "T4") {
       response = response.Task4;
-      if (await issueClosed(repoName, selectedIssue, context)) { // TODO: change to check most recent contributor
+      if (await isContributorMentionedInIssue(repoName, selectedIssue, context)) {
         delete user_data.user_data.selectedIssue;
         await db.updateData(user_data); // must update delete from outer scope before complete task otherwise overwrite
         await completeTask(db, user, "Q2", "T4", context);
@@ -392,7 +392,7 @@ async function validateTask(db, context, user) {
         response = response.errorQ3T2;
       }
     } else if (task === "T3") {
-
+    } else if (task === "T4") {
     }
   }
   issueComment = context.issue({
@@ -436,6 +436,105 @@ async function getPRCount(repo) {
   }
 }
 
+async function getFirstContributor(repo, context) {
+  try {
+    const installationID = context.payload.installation.id;
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
+    });
+
+    const response = await context.octokit.request(
+      `GET /repos/${repo}/contributors`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+    const contributors = response.data;
+    if (contributors.length > 0) {
+      return contributors[0].login;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error getting first contributor: ", error);
+    return null;
+  }
+}
+
+async function isContributorMentionedInIssue(repo, issueNumber, context) {
+  try {
+    // Get the installation ID from the context
+    const installationID = context.payload.installation.id;
+
+    // Authenticate as the installation to get the access token
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
+    });
+
+    // Fetch the list of contributors for the repository
+    const contributorsResponse = await context.octokit.request(
+      `GET /repos/${repo}/contributors`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+
+    // Extract the contributors data
+    const contributors = contributorsResponse.data;
+    const contributorLogins = contributors.map(contributor => contributor.login);
+
+    // Fetch the specified issue
+    const issueResponse = await context.octokit.request(
+      `GET /repos/${repo}/issues/${issueNumber}`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+
+    // Extract the issue data
+    const issue = issueResponse.data;
+    const issueBody = issue.body;
+
+    // Fetch the comments for the issue
+    const commentsResponse = await context.octokit.request(
+      `GET /repos/${repo}/issues/${issueNumber}/comments`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+
+    // Extract the comments data
+    const comments = commentsResponse.data;
+    const commentsBody = comments.map(comment => comment.body).join(' ');
+
+    // Combine the issue body and comments to check for mentions
+    const combinedText = issueBody + ' ' + commentsBody;
+
+    // Check if any contributor is mentioned in the combined text
+    for (const contributorLogin of contributorLogins) {
+      if (combinedText.includes(`@${contributorLogin}`)) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    // Log any errors and return false to indicate failure
+    console.error("Error checking if any contributor is mentioned in the issue: ", error);
+    return false;
+  }
+}
+
 async function userCommited(repo, user, context) {
   try {
     const installationID = context.payload.installation.id;
@@ -464,6 +563,34 @@ async function userCommited(repo, user, context) {
   } catch (error) {
     console.error("Error finding user commits: ", error);
     return false;
+  }
+}
+
+async function countContributors(repo, context) {
+  try {
+    const installationID = context.payload.installation.id;
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
+    });
+    const response = await context.octokit.request(
+      `GET /repos/${repo}/contributors`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+
+    // Extract the contributors data from the response
+    const contributors = response.data;
+
+    // Return the number of contributors
+    return contributors.length;
+  } catch (error) {
+    // Log any errors and return 0 to indicate failure
+    console.error("Error counting contributors: ", error);
+    return 0;
   }
 }
 
