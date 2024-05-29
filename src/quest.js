@@ -361,7 +361,7 @@ async function validateTask(db, context, user) {
       }
     } else if (task === "T4") {
       response = response.Task4;
-      if (await issueClosed(repoName, selectedIssue, context)) {
+      if (await issueClosed(repoName, selectedIssue, context)) { // TODO: change to check most recent contributor
         delete user_data.user_data.selectedIssue;
         await db.updateData(user_data); // must update delete from outer scope before complete task otherwise overwrite
         await completeTask(db, user, "Q2", "T4", context);
@@ -373,14 +373,27 @@ async function validateTask(db, context, user) {
   }
   // quest 3
   else if (quest === "Q3") {
-    // solve issue (upload a file)
-    // check for a push, commit of a file
-    // submit pull request
-    // check for PR
-    // post in the issue asking for someone to review
-    // check for issue comment
-    // close issue
-    // check for issue delete
+    response = response.Quest3;
+    if (task === "T1") {
+      response = response.Task1;
+      const correctAnswer = "c";
+      if (issueComment.toLowerCase().includes(correctAnswer)) {
+        response = response.successQ3T1; // with current quest design, "non code contribution" tagged issue should be there, otherwise will need to create it programatically
+        // await completeTask(db, user, "Q3", "T1", context);
+      } else {
+        response = response.errorQ3T1;
+      }
+    } else if (task === "T2") {
+      response = response.Task2;
+      if (await userPRAndComment(repoName, user, context)) {
+        response = response.successQ3T2;
+        // await completeTask(db, user, "Q3", "T1", context);
+      } else {
+        response = response.errorQ3T2;
+      }
+    } else if (task === "T3") {
+
+    }
   }
   issueComment = context.issue({
     body: response,
@@ -420,6 +433,96 @@ async function getPRCount(repo) {
   } catch (error) {
     console.error("Error fetching pull requests:", error);
     throw error;
+  }
+}
+
+async function userCommited(repo, user, context) {
+  try {
+    const installationID = context.payload.installation.id;
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
+    });
+
+    const response = await context.octokit.request(
+      `GET /repos/${repo}/commits`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+    const commits = response.data;
+    const userCommited = commits.find(
+      (commit) => commit.author && commit.author.login == user
+    );
+    if (userCommited) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error("Error finding user commits: ", error);
+    return false;
+  }
+}
+
+async function userPRAndComment(repo, user, context) {
+  try {
+    const installationID = context.payload.installation.id;
+    const accessToken = await context.octokit.auth({
+      type: "installation",
+      installationID,
+    });
+
+    // Check if the user submitted any pull requests
+    const pullRequestsResponse = await context.octokit.request(
+      `GET /repos/${repo}/pulls`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+    const pullRequests = pullRequestsResponse.data;
+    const userPullRequest = pullRequests.find(
+      (pr) => pr.user && pr.user.login === user
+    );
+
+    if (!userPullRequest) {
+      console.log(`User ${user} has not submitted any pull requests.`);
+      return false;
+    }
+
+    // Check if the user commented on their pull request
+    const pullNumber = userPullRequest.number;
+    const commentsResponse = await context.octokit.request(
+      `GET /repos/${repo}/issues/${pullNumber}/comments`,
+      {
+        headers: {
+          authorization: `token ${accessToken.token}`,
+        },
+      }
+    );
+    const comments = commentsResponse.data;
+    const userCommented = comments.find(
+      (comment) => comment.user && comment.user.login === user
+    );
+
+    if (userCommented) {
+      console.log(
+        `User ${user} has submitted a pull request and commented on it.`
+      );
+      return true;
+    } else {
+      console.log(
+        `User ${user} has submitted a pull request but has not commented on it.`
+      );
+      return false;
+    }
+  } catch (error) {
+    console.error("Error finding user pull requests or comments: ", error);
+    return false;
   }
 }
 
