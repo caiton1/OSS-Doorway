@@ -4,11 +4,11 @@
 
   Tasks:
   - Quest 1 - Exploring the Github World
-    - ~Task 1 - Find the issue tracker~ [COMPLETED]
-    - ~Task 2 - Find the pull-request menu~ [COMPLETED]
-    - ~Task 3 - Find the fork button~ [COMPLETED]
-    - ~Task 4 - Find the readme file~ [COMPLETED]
-    - Task 5 - [Find the contributors](https://github.com/caiton1/OSS-Doorway/issues/60)
+    - Task 1 - [Find the issue tracker](https://github.com/caiton1/OSS-Doorway/issues/2)
+    - Task 2 - Find the pull-request menu
+    - Task 3 - Find the fork button
+    - Task 4 - Find the readme file
+    - Task 5 - Find the contributors
 
 Quests Map:
-![Quest Map](/map/Q1T5.png)
+![Quest Map](/map/Q1.png)
