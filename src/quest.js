@@ -90,6 +90,13 @@ async function completeQuest(db, user, quest, context) {
         // reset quest accepted and current
         removeQuest(db, user);
 
+        if (quest === "Q1"){
+          acceptQuest(context, db, user, "Q2");
+        }
+        if (quest === "Q2"){
+          acceptQuest(context, db, user, "Q3");
+        }
+
         return true; // Quest successfully completed
       }
     }
@@ -361,7 +368,9 @@ async function validateTask(db, context, user) {
       }
     } else if (task === "T4") {
       response = response.Task4;
-      if (await isContributorMentionedInIssue(repoName, selectedIssue, context)) {
+      if (
+        await isContributorMentionedInIssue(repoName, selectedIssue, context)
+      ) {
         await completeTask(db, user, "Q2", "T4", context);
         response = response.successQ2T4;
       } else {
@@ -374,9 +383,11 @@ async function validateTask(db, context, user) {
     response = response.Quest3;
     if (task === "T1") {
       response = response.Task1;
-      if (await userCommited(repoName, user, context)) {
+      correctAnswer = "c"
+      //if (await userCommited(repoName, user, context)) {
+      if(issueComment.toLowerCase().includes(correctAnswer)){
         response = response.successQ3T1; // with current quest design, "non code contribution" tagged issue should be there, otherwise will need to create it programatically
-        // await completeTask(db, user, "Q3", "T1", context);
+        await completeTask(db, user, "Q3", "T1", context);
       } else {
         response = response.errorQ3T1;
       }
@@ -384,22 +395,21 @@ async function validateTask(db, context, user) {
       response = response.Task2;
       if (await userPRAndComment(repoName, user, context)) {
         response = response.successQ3T2;
-        // await completeTask(db, user, "Q3", "T1", context);
+        await completeTask(db, user, "Q3", "T1", context);
       } else {
         response = response.errorQ3T2;
       }
     } else if (task === "T3") {
       response = response.Task3;
       // issue closed
-      if (issueClosed(repoName, selectedIssue, context)) {
+      if (await issueClosed(repoName, selectedIssue, context)) {
         response = response.successQ3T3;
-        
-        // await completetask(db, user, "Q3", "T1", context);
-        
+
+        await completetask(db, user, "Q3", "T1", context);
       } else {
         response = response.errorQ3T3;
       }
-    } 
+    }
   }
   issueComment = context.issue({
     body: response,
@@ -493,7 +503,9 @@ async function isContributorMentionedInIssue(repo, issueNumber, context) {
 
     // Extract the contributors data
     const contributors = contributorsResponse.data;
-    const contributorLogins = contributors.map(contributor => contributor.login);
+    const contributorLogins = contributors.map(
+      (contributor) => contributor.login
+    );
 
     // Fetch the specified issue
     const issueResponse = await context.octokit.request(
@@ -521,10 +533,10 @@ async function isContributorMentionedInIssue(repo, issueNumber, context) {
 
     // Extract the comments data
     const comments = commentsResponse.data;
-    const commentsBody = comments.map(comment => comment.body).join(' ');
+    const commentsBody = comments.map((comment) => comment.body).join(" ");
 
     // Combine the i ssue body and comments to check for mentions
-    const combinedText = issueBody + ' ' + commentsBody;
+    const combinedText = issueBody + " " + commentsBody;
 
     // Check if any contributor is mentioned in the combined text
     for (const contributorLogin of contributorLogins) {
@@ -536,7 +548,10 @@ async function isContributorMentionedInIssue(repo, issueNumber, context) {
     return false;
   } catch (error) {
     // Log any errors and return false to indicate failure
-    console.error("Error checking if any contributor is mentioned in the issue: ", error);
+    console.error(
+      "Error checking if any contributor is mentioned in the issue: ",
+      error
+    );
     return false;
   }
 }
@@ -972,6 +987,75 @@ async function generateSVG(user, owner, repo, context, db) {
   }
 }
 
+async function closeIssues(context) {
+  console.log("close issues called");
+  const issue = context.payload.issue;
+
+  // Check if the comment contains the command to close all issues
+  const owner = context.payload.repository.owner.login;
+  const repo = context.payload.repository.name;
+  const currentIssueNumber = issue.number;
+
+  // Fetch all issues in the repository
+  const issues = await context.octokit.issues.listForRepo({
+    owner,
+    repo,
+    state: "open", // Only fetch open issues since closed issues are already closed
+  });
+
+  // Iterate through the issues and close them except for the current issue
+  for (const issue of issues.data) {
+    if (issue.number !== currentIssueNumber) {
+      try {
+        // Close issue
+        await context.octokit.issues.update({
+          owner,
+          repo,
+          issue_number: issue.number,
+          state: "closed",
+        });
+        console.log(`Closed issue #${issue.number}`);
+      } catch (error) {
+        console.error(`Failed to close issue #${issue.number}:`, error);
+      }
+    }
+  }
+}
+
+async function resetReadme(owner, repo, context) {
+  var content = "## OSS-Doorway initial page (need to change)\n\n";
+  content += `Get started by clicking [here](github.com/${owner}/${repo}/issues), creating a new issue and type /new_user in issue comments \n\n`;
+  content += "Quest Map:\n![Map](/map/Q1.png)\n";
+  try {
+    const {
+      data: { sha },
+    } = await context.octokit.repos.getReadme({
+      owner,
+      repo,
+      path: "README.md",
+    });
+    // todo: change
+    context.octokit.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path: "README.md",
+      message: "Reseting README.md",
+      content: Buffer.from(content).toString("base64"),
+      committer: {
+        name: "gitBot",
+        email: "connor.nicolai.aiton@gmail.com",
+      },
+      author: {
+        name: "caiton1",
+        email: "connor.nicolai.aiton@gmail.com",
+      },
+      sha: sha,
+    });
+  } catch (error) {
+    console.error("Error reseting the README: " + error);
+  }
+}
+
 async function updateReadme(user, owner, repo, context, db) {
   // generate new svg
   await generateSVG(user, owner, repo, context, db);
@@ -1014,12 +1098,13 @@ async function updateReadme(user, owner, repo, context, db) {
 }
 
 async function displayQuests(user, db, context) {
-  // get user data
+  // Get user data
   const repo = context.issue();
   const userData = await db.downloadUserData(user);
   var task = "";
   var quest = "";
   var completed = "";
+
   // TODO: add exception handling
   if (userData.user_data.current !== undefined) {
     task = userData.user_data.current.task;
@@ -1029,151 +1114,128 @@ async function displayQuests(user, db, context) {
   if (userData.user_data.completed !== undefined) {
     completed = userData.user_data.completed;
   }
-  var response = `
-Quests:
-[Go to issues page and create new issue](https://github.com/${repo.owner}/${repo.repo}/issues)
-1. type /new_user
-2. type /accept Q1
 
-Quests Map:
-![Quest Map](/map/Q1.png)
-  `;
-
-  // generate string based on quest
-
-  // TODO, add map link also make more efficient, because this is ew
-  if (quest === "Q1") {
-    response = `
-Quests:
-  - Quest 1 - Exploring the Github World
-`;
-    if (task === "T1") {
-      response += `    - Task 1 - [Find the issue tracker](https://github.com/${
-        repo.owner
-      }/${repo.repo}/issues/${repo.issue_number + 1})
-    - Task 2 - Find the pull-request menu
-    - Task 3 - Find the fork button
-    - Task 4 - Find the readme file
-    - Task 5 - Find the contributors`;
-    } else if (task === "T2") {
-      response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
-    - Task 2 - [Find the pull-request menu](https://github.com/${repo.owner}/${
-        repo.repo
-      }/issues/${repo.issue_number + 1})
-    - Task 3 - Find the fork button
-    - Task 4 - Find the readme file
-    - Task 5 - Find the contributors`;
-    } else if (task === "T3") {
-      response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
-    - ~Task 2 - Find the pull-request menu~ [COMPLETED]
-    - Task 3 - [Find the fork button](https://github.com/${repo.owner}/${
-        repo.repo
-      }/issues/${repo.issue_number + 1}) 
-    - Task 4 - Find the readme file
-    - Task 5 - Find the contributors`;
-    } else if (task === "T4") {
-      response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED] 
-    - ~Task 2 - Find the pull-request menu~ [COMPLETED]
-    - ~Task 3 - Find the fork button~ [COMPLETED]
-    - Task 4 - [Find the readme file](https://github.com/${repo.owner}/${
-        repo.repo
-      }/issues/${repo.issue_number + 1})
-    - Task 5 - Find the contributors`;
-    } else if (task === "T5") {
-      response += `    - ~Task 1 - Find the issue tracker~ [COMPLETED]
-    - ~Task 2 - Find the pull-request menu~ [COMPLETED]
-    - ~Task 3 - Find the fork button~ [COMPLETED]
-    - ~Task 4 - Find the readme file~ [COMPLETED]
-    - Task 5 - [Find the contributors](https://github.com/${repo.owner}/${
-        repo.repo
-      }/issues/${repo.issue_number + 1})`;
+  // Function to get the map link based on the current quest and task
+  function getMapLink(userData, quest, task, completed) {
+    if (!userData || !userData.user_data || !userData.user_data.accepted) {
+      return "/map/Q1.png"; // Return default map link if userData or accepted quests are not available
     }
 
-    if (completed !== "" && completed.includes("Q2")) {
-      response +=
-        "\n  - ~Quest 2 - Introducing yourself self to the community~\n";
+    if (quest === "") {
+      // Check if the current quest is completed and find the next available quest
+      if (completed !== "") {
+        console.log("completed is: ", completed);
+        const quests = Object.keys(userData.user_data.accepted);
+        const currentQuestIndex = quests.indexOf(completed);
+        const nextQuest =
+          currentQuestIndex !== -1 && currentQuestIndex + 1 < quests.length
+            ? quests[currentQuestIndex + 1]
+            : null;
+
+        // Return the map link for the next available quest if exists
+        if (nextQuest) {
+          return `/map/${nextQuest}.png`;
+        }
+      }
+      return "/map/Q1.png"; // Fall through if no next quest is available or no quest is currently set
+    }
+
+    const acceptedTasks = userData.user_data.accepted[quest];
+    if (!acceptedTasks || Object.keys(acceptedTasks).length === 0) {
+      return `/map/${quest}.png`; // Quest image when no task is started
+    }
+
+    const completedTasks = Object.values(acceptedTasks).filter(
+      (t) => t.completed
+    ).length;
+    const totalTasks = Object.keys(acceptedTasks).length;
+
+    if (completedTasks === 0) {
+      return `/map/${quest}.png`; // Quest initial map
+    } else if (completedTasks === totalTasks) {
+      return `/map/${quest}F.png`; // Quest completed map
     } else {
-      response +=
-        "\n  - Quest 2 - Introducing yourself self to the community\n";
-    }
-    if (completed !== "" && completed.includes("Q3")) {
-      response +=
-        "\n  - ~Quest 3 - Introducing yourself self to the community~\n";
-    } else {
-      response +=
-        "\n  - Quest 3 - Introducing yourself self to the community\n";
-    }
-  } else if (quest === "Q2") {
-    response = `
-Quests:
-  - ~Quest 1 - Exploring the Github World~
-  - Quest 2 - Introducing yourself to the community
-`;
-    if (task === "T1") {
-      response += `    - Task 1 - [Choose an issue that you would like to work with](https://github.com/${
-        repo.owner
-      }/${repo.repo}/issues/${repo.issue_number + 1})
-    - Task 2 - Assign your user to work on the issue
-    - Task 3 - Post a comment in the issue introducing yourself
-    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
-    `;
-    } else if (task === "T2") {
-      response += `    - ~Task 1 - Choose an issue that you would like to work with~ [COMPLETED]
-    - Task 2 - [Assign your user to work on the issue](https://github.com/${
-      repo.owner
-    }/${repo.repo}/issues/${repo.issue_number + 1})
-    - Task 3 - Post a comment in the issue introducing yourself
-    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
-    `;
-    } else if (task === "T3") {
-      response += `    - ~Task 1 - Choose an issue that you would like to work with~ [COMPLETED]
-    - ~Task 2 - Assign your user to work on the issue~ [COMPLETED]
-    - Task 3 - [Post a comment in the issue introducing yourself](https://github.com/${
-      repo.owner
-    }/${repo.repo}/issues/${repo.issue_number + 1})
-    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
-    `;
-    } else if (task === "T4") {
-      response += `    - ~Task 1 - Choose an issue that you would like to work with~ [COMPLETED]
-    - ~Task 2 - Assign your user to work on the issue~ [COMPLETED]
-    - ~Task 3 - Post a comment in the issue introducing yourself~ [COMPLETED]
-    - Task 4 - [Mention a contributor that has most recently been active in the project to help you solve the issue](https://github.com/${
-      repo.owner
-    }/${repo.repo}/issues/${repo.issue_number + 1})
-    `;
-    }
-    // quest 2 and its tasks
-    if (completed !== "" && completed.includes("Q3")) {
-      response +=
-        "\n  - ~Quest 3 - Introducing yourself self to the community~\n";
-    } else {
-      response +=
-        "\n  - Quest 3 - Introducing yourself self to the community\n";
-    }
-  } else if (quest === "Q3") {
-    // quest 3 and its tasks
-    response = `
-    Quests:
-      - ~Quest 1 - Exploring the Github World~
-      - ~Quest 2 - Introducing yourself to the community~
-      - Quest 3 - Making you first contribution
-    `;
-    if (task === "T1") {
-      response += `   - Task 1 - Solve the issue (upload a file)
-    - Task 2 - Submit a pull request
-    - Task 3 - Close the issue`;
-    } else if (task === "T2") {
-      response += `   - ~Task 1 - Solve the issue (upload a file)~ [COMPLETED]
-    - Task 2 - Submit a pull request
-    - Task 3 - Close the issue`;
-    } else if (task === "T3") {
-      response += `   - ~Task 1 - Solve the issue (upload a file)~ [COMPLETED]
-    - Task 2 - ~Submit a pull request~ [COMPLETED]
-    - Task 3 - Close the issue`;
+      return `/map/${quest}${task}.png`; // Specific task image
     }
   }
+
+  // Determine the map link
+  const mapLink = getMapLink(userData, quest, task, completed);
+
+  var response = ``;
+
+  // Task descriptions for each quest
+  const quests = {
+    Q1: {
+      title: "Quest 1 - Exploring the Github World",
+      tasks: [
+        "Find the issue tracker",
+        "Find the pull-request menu",
+        "Find the fork button",
+        "Find the readme file",
+        "Find the contributors",
+      ],
+    },
+    Q2: {
+      title: "Quest 2 - Introducing yourself to the community",
+      tasks: [
+        "Choose an issue that you would like to work with",
+        "Assign your user to work on the issue",
+        "Post a comment in the issue introducing yourself",
+        "Mention a contributor that has most recently been active in the project to help you solve the issue",
+      ],
+    },
+    Q3: {
+      title: "Quest 3 - Making your first contribution",
+      tasks: [
+        "Solve the issue (upload a file)",
+        "Submit a pull request",
+        "Close the issue",
+      ],
+    },
+  };
+
+  if (completed !== "" && completed.includes("Q1")) {
+    response += "\n  - ~Quest 1 - Exploring the GitHub World~\n";
+  } else {
+    response += "\n  - Quest 1 - Exploring the GitHub World\n";
+  }
+  if (completed !== "" && completed.includes("Q2")) {
+    response += "\n  - ~Quest 2 - Introducing yourself to the community~\n";
+  } else {
+    response += "\n  - Quest 2 - Introducing yourself to the community\n";
+  }
+  if (completed !== "" && completed.includes("Q3")) {
+    response += "\n  - ~Quest 3 - Making your first contribution~\n";
+  } else {
+    response += "\n  - Quest 3 - Making your first contribution\n";
+  }
+
+  if (quest in quests) {
+    const currentQuest = quests[quest];
+    response = `Quest:\n  - ${currentQuest.title}\n`;
+
+    response = `Tasks:\n  - ${currentQuest.title}\n`;
+    currentQuest.tasks.forEach((desc, index) => {
+      const taskNum = `T${index + 1}`;
+      const isCompleted =
+        userData.user_data.accepted[quest] &&
+        userData.user_data.accepted[quest][taskNum] &&
+        userData.user_data.accepted[quest][taskNum].completed;
+      if (isCompleted) {
+        response += `    - ~Task ${index + 1} - ${desc}~ [COMPLETED]\n`;
+      } else if (task === taskNum) {
+        response += `    - Task ${index + 1} - [${desc}](https://github.com/${
+          repo.owner
+        }/${repo.repo}/issues/${repo.issue_number + 1})\n`;
+      } else {
+        response += `    - Task ${index + 1} - ${desc}\n`;
+      }
+    });
+  }
+  response += `\nQuests Map:\n![Quest Map](${mapLink})`;
+
   return response;
-  // return new string
 }
 
 export const questFunctions = {
@@ -1184,6 +1246,8 @@ export const questFunctions = {
   displayQuests,
   createQuestEnvironment,
   validateTask,
+  closeIssues,
+  resetReadme,
   updateReadme,
   getIssueCount,
   getPRCount,

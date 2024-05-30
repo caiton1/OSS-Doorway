@@ -78,14 +78,19 @@ export default (app) => {
           case "new_user":
             // create user
             status = await db.createUser(user);
+            await questFunctions.acceptQuest(context, db, user, "Q1");
             if (status) {
               response = responses.newUserResponse;
             } else {
               response = "Failed to create new user, user already exists";
             }
-          case "display": // TODO: name better            
-            // test readme
-            await questFunctions.updateReadme(user, owner, repo, context, db);
+            break;
+          case "reset":       
+            // wipe user from database
+            await db.wipeUser(user);
+            // reset readme
+            await questFunctions.resetReadme(owner, repo, context);
+            await questFunctions.closeIssues(context);
             break;
           default:
             // respond unknown command and avaialble commands
@@ -116,7 +121,7 @@ export default (app) => {
 
 // match and break down / command
 function parseCommand(comment) {
-  const regex = /^(\/(new_user|accept|drop|display))(\s.*)?$/;
+  const regex = /^(\/(new_user|accept|drop|reset))(\s.*)?$/;
   const match = comment.match(regex);
   if (match) {
     const action = match[2];

@@ -50,7 +50,22 @@ export class MongoDB {
             return false;
         }
     }
-
+    async wipeUser(userName) {
+        console.log(`Wiping user: ${userName}.`);
+        try {
+            const result = await this.collection.deleteOne({ _id: userName });
+            if (result.deletedCount === 1) {
+                console.log('User successfully deleted.');
+                return true;
+            } else {
+                console.log('User not found.');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error wiping user:', error);
+            return false;
+        }
+    }
     async updateData(userData) {
         const filterQuery = { _id: userData._id };
         const updateQuery = { $set: userData };
