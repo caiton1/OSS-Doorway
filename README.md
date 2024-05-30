@@ -4,10 +4,10 @@
 
   Tasks:
   - Quest 2 - Introducing yourself to the community
-    - Task 1 - [Choose an issue that you would like to work with](https://github.com/caiton1/OSS-Doorway/issues/66)
-    - Task 2 - Assign your user to work on the issue
+    - ~Task 1 - Choose an issue that you would like to work with~ [COMPLETED]
+    - Task 2 - [Assign your user to work on the issue](https://github.com/caiton1/OSS-Doorway/issues/67)
     - Task 3 - Post a comment in the issue introducing yourself
     - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
 
 Quests Map:
-![Quest Map](/map/Q2.png)
+![Quest Map](/map/Q2T2.png)
