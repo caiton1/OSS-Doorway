@@ -362,8 +362,6 @@ async function validateTask(db, context, user) {
     } else if (task === "T4") {
       response = response.Task4;
       if (await isContributorMentionedInIssue(repoName, selectedIssue, context)) {
-        delete user_data.user_data.selectedIssue;
-        await db.updateData(user_data); // must update delete from outer scope before complete task otherwise overwrite
         await completeTask(db, user, "Q2", "T4", context);
         response = response.successQ2T4;
       } else {
@@ -376,8 +374,7 @@ async function validateTask(db, context, user) {
     response = response.Quest3;
     if (task === "T1") {
       response = response.Task1;
-      const correctAnswer = "c";
-      if (issueComment.toLowerCase().includes(correctAnswer)) {
+      if (await userCommited(repoName, user, context)) {
         response = response.successQ3T1; // with current quest design, "non code contribution" tagged issue should be there, otherwise will need to create it programatically
         // await completeTask(db, user, "Q3", "T1", context);
       } else {
@@ -392,8 +389,17 @@ async function validateTask(db, context, user) {
         response = response.errorQ3T2;
       }
     } else if (task === "T3") {
-    } else if (task === "T4") {
-    }
+      response = response.Task3;
+      // issue closed
+      if (issueClosed(repoName, selectedIssue, context)) {
+        response = response.successQ3T3;
+        
+        // await completetask(db, user, "Q3", "T1", context);
+        
+      } else {
+        response = response.errorQ3T3;
+      }
+    } 
   }
   issueComment = context.issue({
     body: response,
@@ -517,7 +523,7 @@ async function isContributorMentionedInIssue(repo, issueNumber, context) {
     const comments = commentsResponse.data;
     const commentsBody = comments.map(comment => comment.body).join(' ');
 
-    // Combine the issue body and comments to check for mentions
+    // Combine the i ssue body and comments to check for mentions
     const combinedText = issueBody + ' ' + commentsBody;
 
     // Check if any contributor is mentioned in the combined text
@@ -1030,7 +1036,7 @@ Quests:
 2. type /accept Q1
 
 Quests Map:
-![Quest Map](/map/QuestMap.png)
+![Quest Map](/map/Q1.png)
   `;
 
   // generate string based on quest
@@ -1155,23 +1161,15 @@ Quests:
     if (task === "T1") {
       response += `   - Task 1 - Solve the issue (upload a file)
     - Task 2 - Submit a pull request
-    - Task 3 - Post in the issue asking for someone to review it
-    - Task 4 - Close the issue`;
+    - Task 3 - Close the issue`;
     } else if (task === "T2") {
-      response += `   - Task 1 - Solve the issue (upload a file)
+      response += `   - ~Task 1 - Solve the issue (upload a file)~ [COMPLETED]
     - Task 2 - Submit a pull request
-    - Task 3 - Post in the issue asking for someone to review it
-    - Task 4 - Close the issue`;
+    - Task 3 - Close the issue`;
     } else if (task === "T3") {
-      response += `   - Task 1 - Solve the issue (upload a file)
-    - Task 2 - Submit a pull request
-    - Task 3 - Post in the issue asking for someone to review it
-    - Task 4 - Close the issue`;
-    } else if (task === "T4") {
-      response += `   - Task 1 - Solve the issue (upload a file)
-    - Task 2 - Submit a pull request
-    - Task 3 - Post in the issue asking for someone to review it
-    - Task 4 - Close the issue`;
+      response += `   - ~Task 1 - Solve the issue (upload a file)~ [COMPLETED]
+    - Task 2 - ~Submit a pull request~ [COMPLETED]
+    - Task 3 - Close the issue`;
     }
   }
   return response;
