@@ -5,7 +5,7 @@
   Tasks:
   - Quest 3 - Making your first contribution
     - ~Task 1 - Solve the issue (upload a file)~ [COMPLETED]
-    - Task 2 - [Submit a pull request](https://github.com/caiton1/OSS-Doorway/issues/82)
+    - Task 2 - [Submit a pull request](https://github.com/caiton1/OSS-Doorway/issues/83)
     - Task 3 - Close the issue
 
 Quests Map:
