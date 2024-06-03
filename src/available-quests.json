@@ -67,16 +67,11 @@
       "xp": 25
     },
     "T2": {
-      "desc": "Submit a pull request",
-      "points": 25,
-      "xp": 25
-    },
-    "T3": {
       "desc": "Post in issue asking for a review",
       "points": 25,
       "xp": 25
     },
-    "T4": {
+    "T3": {
       "desc": "Close the issue",
       "points": 25,
       "xp": 25

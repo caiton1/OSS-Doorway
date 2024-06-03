@@ -4,12 +4,12 @@ const responseFilePath = "./src/response.json";
 const configFilePath = "./src/config.json";
 const questResponse = JSON.parse(fs.readFileSync(responseFilePath, "utf-8"));
 const repoName = JSON.parse(fs.readFileSync(configFilePath, "utf-8")).repo;
+const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
 
 async function acceptQuest(context, db, user, quest) {
   const { owner, repo } = context.repo();
   try {
     // Read in available qeusts and validate requested quest
-    const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
     if (quest in quests) {
       const user_data = await db.downloadUserData(user);
       if (!user_data.user_data.accepted) {
@@ -90,10 +90,10 @@ async function completeQuest(db, user, quest, context) {
         // reset quest accepted and current
         removeQuest(db, user);
 
-        if (quest === "Q1"){
+        if (quest === "Q1") {
           acceptQuest(context, db, user, "Q2");
         }
-        if (quest === "Q2"){
+        if (quest === "Q2") {
           acceptQuest(context, db, user, "Q3");
         }
 
@@ -136,8 +136,8 @@ async function completeTask(db, user, quest, task, context) {
         user_data.user_data.current.task = nextTask;
         await db.updateData(user_data);
       } else {
-        await db.updateData(user_data);
         user_data.user_data.current.task = null;
+        await db.updateData(user_data);
         await completeQuest(db, user, quest, context);
       }
 
@@ -170,83 +170,101 @@ async function createQuestEnvironment(quest, task, context) {
   var issueComment = "";
   const { owner, repo } = context.repo();
   var response = questResponse;
+  var title = quests;
   var flag = false; // check for if task is selected
   // most will be creating an issue with multiple choice
   // quest 1 TODO: use another repo, use API enpoint to find issue numbers, include link to issues in the project
   if (quest === "Q1") {
     response = response.Quest1;
+    title = title.Q1;
     // Find issue tracker
     if (task === "T1") {
       response = response.Task1.acceptQ1T1;
+      title = title.T1;
       flag = true;
     }
     // find pull request menu
     else if (task === "T2") {
       response = response.Task2.acceptQ1T2;
+      title = title.T2;
       flag = true;
     }
     // find the fork button
     else if (task === "T3") {
       response = response.Task3.acceptQ1T3;
+      title = title.T3;
       flag = true;
     }
     // find the readme file
     else if (task === "T4") {
       response = response.Task4.acceptQ1T4;
+      title = title.T4;
       flag = true;
     }
     // find the contributors
     else if (task === "T5") {
       response = response.Task5.acceptQ1T5;
+      title = title.T5;
       flag = true;
     }
   }
   // quest 2 generate environment where needed
   else if (quest === "Q2") {
     response = response.Quest2;
+    title = title.Q2;
     // choose issue that you would like to work with
     if (task === "T1") {
       // generate issues, with tags
       response = response.Task1.acceptQ2T1;
+      title = title.T1;
       flag = true;
     } else if (task === "T2") {
       // assign user to work on issue
       response = response.Task2.acceptQ2T2;
+      title = title.T2;
       flag = true;
     } else if (task === "T3") {
       // post a commnet in the issue introducing yourself
       response = response.Task3.acceptQ2T3;
+      title = title.T3;
       flag = true;
     } else if (task === "T4") {
       // mention a contributor
       response = response.Task4.acceptQ2T4;
+      title = title.T4;
       flag = true;
     }
   }
   // quest 3
   else if (quest === "Q3") {
     response = response.Quest3;
+    title = title.Q3;
     // solve issue (upload a file)
     if (task === "T1") {
       response = response.Task1.acceptQ3T1;
+      title = title.T1;
       flag = true;
     }
     // submit pull request
     else if (task === "T2") {
       response = response.Task2.acceptQ3T2;
+      title = title.T2;
       flag = true;
     }
     // post in the issue askingfor someone to review
     else if (task === "T3") {
       response = response.Task3.acceptQ3T3;
+      title = title.T3;
       flag = true;
     }
     // close issue
     else if (task === "T4") {
       response = response.Task4.acceptQ3T4;
+      title = title.T4;
       flag = true;
     }
   }
+
   issueComment = context.issue({
     body: response,
   });
@@ -256,7 +274,7 @@ async function createQuestEnvironment(quest, task, context) {
       await context.octokit.issues.create({
         owner: owner,
         repo: repo,
-        title: "❗ QUEST: " + task,
+        title: "❗ QUEST: " + title.desc,
         body: response,
       });
     } catch (error) {
@@ -266,155 +284,164 @@ async function createQuestEnvironment(quest, task, context) {
 }
 
 async function validateTask(db, context, user) {
-  const userData = await db.downloadUserData(user);
-  // TODO: add exception handling
-  const task = userData.user_data.current.task;
-  const quest = userData.user_data.current.quest;
-  var issueComment = context.payload.comment.body;
-  var response = questResponse;
+  try {
+    const userData = await db.downloadUserData(user);
+    // TODO: add exception handling
+    const task = userData.user_data.current.task;
+    const quest = userData.user_data.current.quest;
+    var issueComment = context.payload.comment.body;
+    var response = questResponse;
+    const { owner, repo } = context.repo();
 
-  if (quest === "Q1") {
-    response = response.Quest1;
-    if (task === "T1") {
-      response = response.Task1;
-      // Check issue tracker count
-      const issueCount = await getIssueCount(repoName);
-      if (issueCount !== null && context.payload.comment.body == issueCount) {
-        response = response.successQ1T1;
-        await completeTask(db, user, "Q1", "T1", context);
-      } else {
-        response = response.errorQ1T1;
-      }
-    } else if (task === "T2") {
-      response = response.Task2;
-      // Check pull request count
-      const PRCount = await getPRCount(repoName);
-      if (PRCount !== null && context.payload.comment.body == PRCount) {
-        response = response.successQ1T2;
-        await completeTask(db, user, "Q1", "T2", context);
-      } else {
-        response = response.errorQ1T2;
-      }
-    } else if (task === "T3") {
-      response = response.Task3;
-      // On fork or multiple choice
-      const correctAnswer = "c"; // TODO: parameterize ??
-      if (issueComment.toLowerCase().includes(correctAnswer)) {
-        response = response.successQ1T3;
-        await completeTask(db, user, "Q1", "T3", context);
-      } else {
-        response = response.errorQ1T3;
-      }
-    } else if (task === "T4") {
-      response = response.Task4;
-      // Check issue body for a hint about readme
-      const hint = "c";
-      if (issueComment.toLowerCase().includes(hint)) {
-        response = response.successQ1T4;
-        await completeTask(db, user, "Q1", "T4", context); // fail here?
-      } else {
-        response = response.errorQ1T4;
-      }
-    } else if (task === "T5") {
-      response = response.Task5;
-      // Check for valid contributor name
-      // const correctAnswer = await getFirstContributor(repoName, context);
-      const correctAnswer = await countContributors(repoName, context);
-      if (issueComment.toLowerCase() == correctAnswer) {
-        await completeTask(db, user, "Q1", "T5", context);
-        response = response.successQ1T5;
-      } else {
-        response = response.errorQ1T5;
-      }
-    }
-  }
-  // quest 2
-  else if (quest === "Q2") {
-    response = response.Quest2;
-    var user_data = await db.downloadUserData(user);
-    const selectedIssue = user_data.user_data.selectedIssue;
-    // choose issue that you would like to work with
-    if (task === "T1") {
-      // check open issues
-      response = response.Task1;
-      const openIssueNums = await openIssues(repoName, context);
-      if (openIssueNums.includes(Number(issueComment))) {
-        response = response.successQ2T1;
-        // add selected issue to database
-        user_data.user_data.selectedIssue = Number(issueComment);
-        await db.updateData(user_data);
-        // complete task
-        await completeTask(db, user, "Q2", "T1", context);
-      } else {
-        response = response.errorQ2T1;
-      }
-    } else if (task === "T2") {
-      response = response.Task2;
-      // check assignee in selected issue
-      if (await checkAssignee(repoName, selectedIssue, user, context)) {
-        await completeTask(db, user, "Q2", "T2", context);
-        response = response.successQ2T2;
-      } else {
-        response = response.errorQ2T2;
-      }
-    } else if (task === "T3") {
-      response = response.Task3;
-      // check if user commented
-      if (await userCommentedInIssue(repoName, selectedIssue, user, context)) {
-        await completeTask(db, user, "Q2", "T3", context);
-        response = response.successQ2T3;
-      } else {
-        response = response.errorQ2T3;
-      }
-    } else if (task === "T4") {
-      response = response.Task4;
-      if (
-        await isContributorMentionedInIssue(repoName, selectedIssue, context)
-      ) {
-        await completeTask(db, user, "Q2", "T4", context);
-        response = response.successQ2T4;
-      } else {
-        response = response.errorQ2T4;
+    if (quest === "Q1") {
+      response = response.Quest1;
+      if (task === "T1") {
+        response = response.Task1;
+        // Check issue tracker count
+        const issueCount = await getIssueCount(repoName);
+        if (issueCount !== null && context.payload.comment.body == issueCount) {
+          response = response.successQ1T1;
+          await completeTask(db, user, "Q1", "T1", context);
+        } else {
+          response = response.errorQ1T1;
+        }
+      } else if (task === "T2") {
+        response = response.Task2;
+        // Check pull request count
+        const PRCount = await getPRCount(repoName);
+        if (PRCount !== null && context.payload.comment.body == PRCount) {
+          response = response.successQ1T2;
+          await completeTask(db, user, "Q1", "T2", context);
+        } else {
+          response = response.errorQ1T2;
+        }
+      } else if (task === "T3") {
+        response = response.Task3;
+        // On fork or multiple choice
+        const correctAnswer = "c"; // TODO: parameterize ??
+        if (issueComment.toLowerCase().includes(correctAnswer)) {
+          response = response.successQ1T3;
+          await completeTask(db, user, "Q1", "T3", context);
+        } else {
+          response = response.errorQ1T3;
+        }
+      } else if (task === "T4") {
+        response = response.Task4;
+        // Check issue body for a hint about readme
+        const hint = "c";
+        if (issueComment.toLowerCase().includes(hint)) {
+          response = response.successQ1T4;
+          await completeTask(db, user, "Q1", "T4", context); 
+        } else {
+          response = response.errorQ1T4;
+        }
+      } else if (task === "T5") {
+        response = response.Task5;
+        // Check for valid contributor name
+        // const correctAnswer = await getFirstContributor(repoName, context);
+        const correctAnswer = await countContributors(repoName, context);
+        if (issueComment.toLowerCase() == correctAnswer) {
+          await completeTask(db, user, "Q1", "T5", context);
+          response = response.successQ1T5;
+        } else {
+          response = response.errorQ1T5;
+        }
       }
     }
-  }
-  // quest 3
-  else if (quest === "Q3") {
-    response = response.Quest3;
-    if (task === "T1") {
-      response = response.Task1;
-      correctAnswer = "c"
-      //if (await userCommited(repoName, user, context)) {
-      if(issueComment.toLowerCase().includes(correctAnswer)){
-        response = response.successQ3T1; // with current quest design, "non code contribution" tagged issue should be there, otherwise will need to create it programatically
-        await completeTask(db, user, "Q3", "T1", context);
-      } else {
-        response = response.errorQ3T1;
+    // quest 2
+    else if (quest === "Q2") {
+      response = response.Quest2;
+      var user_data = await db.downloadUserData(user);
+      const selectedIssue = user_data.user_data.selectedIssue;
+      // choose issue that you would like to work with
+      if (task === "T1") {
+        // check open issues
+        response = response.Task1;
+        const openIssueNums = await openIssues(repoName, context);
+        if (openIssueNums.includes(Number(issueComment))) {
+          response = response.successQ2T1;
+          // add selected issue to database
+          user_data.user_data.selectedIssue = Number(issueComment);
+          await db.updateData(user_data);
+          // complete task
+          await completeTask(db, user, "Q2", "T1", context);
+        } else {
+          response = response.errorQ2T1;
+        }
+      } else if (task === "T2") {
+        response = response.Task2;
+        // check assignee in selected issue
+        if (await checkAssignee(repoName, selectedIssue, user, context)) {
+          await completeTask(db, user, "Q2", "T2", context);
+          response = response.successQ2T2;
+        } else {
+          response = response.errorQ2T2;
+        }
+      } else if (task === "T3") {
+        response = response.Task3;
+        // check if user commented
+        if (
+          await userCommentedInIssue(repoName, selectedIssue, user, context)
+        ) {
+          await completeTask(db, user, "Q2", "T3", context);
+          response = response.successQ2T3;
+        } else {
+          response = response.errorQ2T3;
+        }
+      } else if (task === "T4") {
+        response = response.Task4;
+        if (
+          await isContributorMentionedInIssue(repoName, selectedIssue, context)
+        ) {
+          await completeTask(db, user, "Q2", "T4", context);
+          response = response.successQ2T4;
+        } else {
+          response = response.errorQ2T4;
+        }
       }
-    } else if (task === "T2") {
-      response = response.Task2;
-      if (await userPRAndComment(repoName, user, context)) {
-        response = response.successQ3T2;
-        await completeTask(db, user, "Q3", "T1", context);
-      } else {
-        response = response.errorQ3T2;
-      }
-    } else if (task === "T3") {
-      response = response.Task3;
-      // issue closed
-      if (await issueClosed(repoName, selectedIssue, context)) {
-        response = response.successQ3T3;
+    }
+    // quest 3
+    else if (quest === "Q3") {
+      response = response.Quest3;
+      if (task === "T1") {
+        response = response.Task1;
+        correctAnswer = "c";
+        //if (await userCommited(repoName, user, context)) {
+        if (issueComment.toLowerCase().includes(correctAnswer)) {
+          response = response.successQ3T1; // with current quest design, "non code contribution" tagged issue should be there, otherwise will need to create it programatically
+          await completeTask(db, user, "Q3", "T1", context);
+        } else {
+          response = response.errorQ3T1;
+        }
+      } else if (task === "T2") {
+        response = response.Task2;
+        if (await userPRAndComment(repoName, user, context)) {
+          response = response.successQ3T2;
+          await completeTask(db, user, "Q3", "T1", context);
+        } else {
+          response = response.errorQ3T2;
+        }
+      } else if (task === "T3") {
+        response = response.Task3;
+        // issue closed
+        if (await issueClosed(repoName, selectedIssue, context)) {
+          response = response.successQ3T3;
 
-        await completetask(db, user, "Q3", "T1", context);
-      } else {
-        response = response.errorQ3T3;
+          await completetask(db, user, "Q3", "T1", context);
+        } else {
+          response = response.errorQ3T3;
+        }
       }
     }
+    response += `\n\nReturn [Home](https://github.com/${owner}/${repo})`;
+
+    issueComment = context.issue({
+      body: response,
+    });
+    await context.octokit.issues.createComment(issueComment);
+  } catch (error) {
+    console.error("Error validating task: " + error);
   }
-  issueComment = context.issue({
-    body: response,
-  });
-  await context.octokit.issues.createComment(issueComment);
 }
 
 // supporting functions for quest validation
@@ -885,7 +912,7 @@ async function generateSVG(user, owner, repo, context, db) {
                 }
                 to {
                     transform: translate(-5px, 5px) scale(1);
-                }
+                } 
             }
             @keyframes fadeInAnimation {
                 from {
@@ -965,8 +992,7 @@ async function generateSVG(user, owner, repo, context, db) {
       repo,
       path: "userCards/draft.svg",
     });
-    // todo: change
-    context.octokit.repos.createOrUpdateFileContents({
+    await context.octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
       path: "userCards/draft.svg",
@@ -1035,7 +1061,7 @@ async function resetReadme(owner, repo, context) {
       path: "README.md",
     });
     // todo: change
-    context.octokit.repos.createOrUpdateFileContents({
+    await context.octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
       path: "README.md",
@@ -1057,17 +1083,16 @@ async function resetReadme(owner, repo, context) {
 }
 
 async function updateReadme(user, owner, repo, context, db) {
-  // generate new svg
-  await generateSVG(user, owner, repo, context, db);
-  // updated content, user card, quests and tasks, quest map
-  var newContent = `
+  try {
+    // generate new svg
+    await generateSVG(user, owner, repo, context, db);
+    // updated content, user card, quests and tasks, quest map
+    var newContent = `
   User Stats:<br>
   ![User Draft Stats](/userCards/draft.svg?)
 
   `;
-  newContent += await displayQuests(user, db, context);
-
-  try {
+    newContent += await displayQuests(user, db, context);
     const {
       data: { sha },
     } = await context.octokit.repos.getReadme({
@@ -1076,7 +1101,7 @@ async function updateReadme(user, owner, repo, context, db) {
       path: "README.md",
     });
     // todo: change
-    context.octokit.repos.createOrUpdateFileContents({
+    await context.octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
       path: "README.md",
@@ -1124,7 +1149,6 @@ async function displayQuests(user, db, context) {
     if (quest === "") {
       // Check if the current quest is completed and find the next available quest
       if (completed !== "") {
-        console.log("completed is: ", completed);
         const quests = Object.keys(userData.user_data.accepted);
         const currentQuestIndex = quests.indexOf(completed);
         const nextQuest =
@@ -1197,25 +1221,17 @@ async function displayQuests(user, db, context) {
 
   if (completed !== "" && completed.includes("Q1")) {
     response += "\n  - ~Quest 1 - Exploring the GitHub World~\n";
-  } else {
-    response += "\n  - Quest 1 - Exploring the GitHub World\n";
-  }
+  } 
   if (completed !== "" && completed.includes("Q2")) {
     response += "\n  - ~Quest 2 - Introducing yourself to the community~\n";
-  } else {
-    response += "\n  - Quest 2 - Introducing yourself to the community\n";
-  }
+  } 
   if (completed !== "" && completed.includes("Q3")) {
     response += "\n  - ~Quest 3 - Making your first contribution~\n";
-  } else {
-    response += "\n  - Quest 3 - Making your first contribution\n";
-  }
+  } 
 
   if (quest in quests) {
     const currentQuest = quests[quest];
-    response = `Quest:\n  - ${currentQuest.title}\n`;
-
-    response = `Tasks:\n  - ${currentQuest.title}\n`;
+    response += `Quest:\n  - ${currentQuest.title}\n`;
     currentQuest.tasks.forEach((desc, index) => {
       const taskNum = `T${index + 1}`;
       const isCompleted =
