@@ -1,13 +1,6 @@
+## OSS-Doorway initial page (need to change)
 
-  User Stats:<br>
-  ![User Draft Stats](/userCards/draft.svg?)
+Get started by clicking [here](github.com/caiton1/OSS-Doorway/issues), creating a new issue and type /new_user in issue comments 
 
-  Tasks:
-  - Quest 2 - Introducing yourself to the community
-    - Task 1 - [Choose an issue that you would like to work with](https://github.com/caiton1/OSS-Doorway/issues/90)
-    - Task 2 - Assign your user to work on the issue
-    - Task 3 - Post a comment in the issue introducing yourself
-    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
-
-Quests Map:
-![Quest Map](/map/Q2.png)
+Quest Map:
+![Map](/map/Q1.png)
