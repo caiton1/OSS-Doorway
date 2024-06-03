@@ -3,10 +3,12 @@
   ![User Draft Stats](/userCards/draft.svg?)
 
   Tasks:
-  - Quest 3 - Making your first contribution
-    - ~Task 1 - Solve the issue (upload a file)~ [COMPLETED]
-    - Task 2 - [Submit a pull request](https://github.com/caiton1/OSS-Doorway/issues/83)
-    - Task 3 - Close the issue
+  - Quest 1 - Exploring the Github World
+    - Task 1 - [Find the issue tracker](https://github.com/caiton1/OSS-Doorway/issues/85)
+    - Task 2 - Find the pull-request menu
+    - Task 3 - Find the fork button
+    - Task 4 - Find the readme file
+    - Task 5 - Find the contributors
 
 Quests Map:
-![Quest Map](/map/Q3T2.png)
+![Quest Map](/map/Q1.png)
