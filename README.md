@@ -7,8 +7,8 @@
     - ~Task 1 - Find the issue tracker~ [COMPLETED]
     - ~Task 2 - Find the pull-request menu~ [COMPLETED]
     - ~Task 3 - Find the fork button~ [COMPLETED]
-    - Task 4 - [Find the readme file](https://github.com/caiton1/OSS-Doorway/issues/113)
-    - Task 5 - Find the contributors
+    - ~Task 4 - Find the readme file~ [COMPLETED]
+    - Task 5 - [Find the contributors](https://github.com/caiton1/OSS-Doorway/issues/114)
 
 Quests Map:
-![Quest Map](/map/Q1T4.png)
+![Quest Map](/map/Q1T5.png)
