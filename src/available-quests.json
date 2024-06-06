@@ -5,27 +5,27 @@
       "prerequisite": null
     },
     "T1": {
-      "desc": "Find the issue tracker",
+      "desc": "Explore the issue tracker",
       "points": 20,
       "xp": 20
     },
     "T2": {
-      "desc": "Find the pull-request menu",
+      "desc": "Explore the pull-request menu",
       "points": 20,
       "xp": 20
     },
     "T3": {
-      "desc": "Find the fork button",
+      "desc": "Explore the fork button",
       "points": 20,
       "xp": 20
     },
     "T4": {
-      "desc": "Find the readme file",
+      "desc": "Explore the readme file",
       "points": 20,
       "xp": 20
     },
     "T5": {
-      "desc": "Find the contributors",
+      "desc": "Explore the contributors",
       "points": 20,
       "xp": 20
     }

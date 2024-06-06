@@ -3,6 +3,8 @@ import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 dotenv.config();
 
+// TODO: implement timer 
+
 export class MongoDB {
     constructor() {
         this.uri = process.env.URI;

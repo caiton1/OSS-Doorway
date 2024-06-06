@@ -1,3 +1,5 @@
+// TODO: check bot response
+
 import fs from "fs";
 const questFilePath = "./src/available-quests.json";
 const responseFilePath = "./src/response.json";
@@ -264,6 +266,8 @@ async function createQuestEnvironment(quest, task, context) {
       flag = true;
     }
   }
+  console.log(repoName);
+  response += `\n\n[Click here to start](https://github.com/${repoName})`;
 
   issueComment = context.issue({
     body: response,
@@ -274,7 +278,7 @@ async function createQuestEnvironment(quest, task, context) {
       await context.octokit.issues.create({
         owner: owner,
         repo: repo,
-        title: "❗ QUEST: " + title.desc,
+        title: `❗ ${quest} ${task}: ` + title.desc,
         body: response,
       });
     } catch (error) {
@@ -331,7 +335,7 @@ async function validateTask(db, context, user) {
         const hint = "c";
         if (issueComment.toLowerCase().includes(hint)) {
           response = response.successQ1T4;
-          await completeTask(db, user, "Q1", "T4", context); 
+          await completeTask(db, user, "Q1", "T4", context);
         } else {
           response = response.errorQ1T4;
         }
@@ -358,7 +362,8 @@ async function validateTask(db, context, user) {
         // check open issues
         response = response.Task1;
         const openIssueNums = await openIssues(repoName, context);
-        if (openIssueNums.includes(Number(issueComment))) {
+        if (openIssueNums.includes(Number(issueComment)) && 
+            isFirstAssignee(repoName, user, Number(issueComment))) {
           response = response.successQ2T1;
           // add selected issue to database
           user_data.user_data.selectedIssue = Number(issueComment);
@@ -405,7 +410,7 @@ async function validateTask(db, context, user) {
       response = response.Quest3;
       if (task === "T1") {
         response = response.Task1;
-        correctAnswer = "c";
+        const correctAnswer = "c";
         //if (await userCommited(repoName, user, context)) {
         if (issueComment.toLowerCase().includes(correctAnswer)) {
           response = response.successQ3T1; // with current quest design, "non code contribution" tagged issue should be there, otherwise will need to create it programatically
@@ -460,6 +465,25 @@ async function getIssueCount(repo) {
     return null;
   }
 }
+
+async function isFirstAssignee(repo, user, selectedIssue) {
+  try {
+    const response = await fetch(`https://api.github.com/repos/${repo}/issues`);
+    const issues = await response.json();
+    const issueSelected = issues.find(issue => issue.number == selectedIssue);
+    const assignees = issueSelected.assignees;
+    if (assignees.length == 1) { // TODO: check if issue exist
+      console.log("user only assignee");
+      return true;
+    } else {
+      console.log("user not only");
+      return false;
+    }
+  } catch (error) {
+    console.error("Error checking assignees: " + error);
+  }
+}
+
 
 async function getPRCount(repo) {
   try {
@@ -815,14 +839,14 @@ async function checkAssignee(repo, issueNum, user, context) {
 
 async function generateSVG(user, owner, repo, context, db) {
   try {
-    // get user data
+    // Fetch user data
     const userDocument = await db.downloadUserData(user);
     const percentage = userDocument.user_data.completion * 100;
     const radius = 40;
     const circumference = 2 * Math.PI * radius;
     const offset = circumference * (1 - percentage / 100);
 
-    // svg content
+    // Define SVG content
     const svgContent = `
     <svg
         width="450"
@@ -956,47 +980,36 @@ async function generateSVG(user, owner, repo, context, db) {
                 <g transform="translate(0, 0)">
                     <g class="stagger" style="animation-delay: 450ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Quests Completed 🎲:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="stars">${
-                          userDocument.user_data.completed &&
-                          userDocument.user_data.completed !== undefined
-                            ? userDocument.user_data.completed
-                            : 0
-                        }</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="stars">${userDocument.user_data.completed && userDocument.user_data.completed !== undefined ? userDocument.user_data.completed : 0}</text>
                     </g>
                 </g>
                 <g transform="translate(0, 25)">
                     <g class="stagger" style="animation-delay: 600ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Total Points✨:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">${
-                          userDocument.user_data.points
-                        }</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">${userDocument.user_data.points}</text>
                     </g>
                 </g>
                 <g transform="translate(0, 50)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">User's Level 🌟:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${
-                          Math.floor(userDocument.user_data.xp / 100) + 1
-                        }</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${Math.floor(userDocument.user_data.xp / 100) + 1}</text>
                     </g>
                 </g>
             </svg>
         </g>
     </svg>
     `;
-    // write to file
-    const {
-      data: { sha },
-    } = await context.octokit.repos.getContent({
-      owner,
-      repo,
-      path: "userCards/draft.svg",
-    });
+
+    // Generate a unique filename based on the current timestamp
+    const timestamp = Date.now();
+    const newFilename = `userCards/draft-${timestamp}.svg`;
+
+    // Write to the new file
     await context.octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
-      path: "userCards/draft.svg",
-      message: "Update draft.svg",
+      path: newFilename,
+      message: `Update ${newFilename}`,
       content: Buffer.from(svgContent).toString("base64"),
       committer: {
         name: "gitBot",
@@ -1006,12 +1019,15 @@ async function generateSVG(user, owner, repo, context, db) {
         name: "caiton1",
         email: "connor.nicolai.aiton@gmail.com",
       },
-      sha: sha,
     });
+
+    return newFilename;
   } catch (error) {
     console.error("Error generating SVG:", error);
   }
 }
+
+
 
 async function closeIssues(context) {
   console.log("close issues called");
@@ -1085,11 +1101,11 @@ async function resetReadme(owner, repo, context) {
 async function updateReadme(user, owner, repo, context, db) {
   try {
     // generate new svg
-    await generateSVG(user, owner, repo, context, db);
+    const newSVG = await generateSVG(user, owner, repo, context, db);
     // updated content, user card, quests and tasks, quest map
     var newContent = `
   User Stats:<br>
-  ![User Draft Stats](/userCards/draft.svg?)
+  ![User Draft Stats](/${newSVG}?)
 
   `;
     newContent += await displayQuests(user, db, context);
@@ -1122,6 +1138,53 @@ async function updateReadme(user, owner, repo, context, db) {
   }
 }
 
+// Function to get the map link based on the current quest and task
+function getMapLink(userData, quest, task, completed) {
+  if (!userData || !userData.user_data || !userData.user_data.accepted) {
+    return "/map/Q1.png"; // Return default map link if userData or accepted quests are not available
+  }
+
+  if (quest === "") {
+    // Check if the current quest is completed and find the next available quest
+    if (completed !== "") {
+      const quests = Object.keys(userData.user_data.accepted);
+      const currentQuestIndex = quests.indexOf(completed);
+      const nextQuest =
+        currentQuestIndex !== -1 && currentQuestIndex + 1 < quests.length
+          ? quests[currentQuestIndex + 1]
+          : null;
+
+      // Return the map link for the next available quest if exists
+      if (nextQuest) {
+        return `/map/${nextQuest}.png`;
+      }
+    }
+    return "/map/Q1.png"; // Fall through if no next quest is available or no quest is currently set
+  }
+
+  const acceptedTasks = userData.user_data.accepted[quest];
+  if (!acceptedTasks || Object.keys(acceptedTasks).length === 0) {
+    return `/map/${quest}.png`; // Quest image when no task is started
+  }
+
+  const completedTasks = Object.values(acceptedTasks).filter(
+    (t) => t.completed
+  ).length;
+  const totalTasks = Object.keys(acceptedTasks).length;
+
+  if (completedTasks === 0) {
+    return `/map/${quest}.png`; // Quest initial map
+  } else if (completedTasks === totalTasks) {
+    return `/map/${quest}F.png`; // Quest completed map
+  } else {
+    return `/map/${quest}${task}.png`; // Specific task image
+  }
+}
+// Function to get the user card link based onthe current quest and task
+function getCardLink(userData, quest, task, completed) {
+  // TODO:
+}
+
 async function displayQuests(user, db, context) {
   // Get user data
   const repo = context.issue();
@@ -1140,64 +1203,21 @@ async function displayQuests(user, db, context) {
     completed = userData.user_data.completed;
   }
 
-  // Function to get the map link based on the current quest and task
-  function getMapLink(userData, quest, task, completed) {
-    if (!userData || !userData.user_data || !userData.user_data.accepted) {
-      return "/map/Q1.png"; // Return default map link if userData or accepted quests are not available
-    }
-
-    if (quest === "") {
-      // Check if the current quest is completed and find the next available quest
-      if (completed !== "") {
-        const quests = Object.keys(userData.user_data.accepted);
-        const currentQuestIndex = quests.indexOf(completed);
-        const nextQuest =
-          currentQuestIndex !== -1 && currentQuestIndex + 1 < quests.length
-            ? quests[currentQuestIndex + 1]
-            : null;
-
-        // Return the map link for the next available quest if exists
-        if (nextQuest) {
-          return `/map/${nextQuest}.png`;
-        }
-      }
-      return "/map/Q1.png"; // Fall through if no next quest is available or no quest is currently set
-    }
-
-    const acceptedTasks = userData.user_data.accepted[quest];
-    if (!acceptedTasks || Object.keys(acceptedTasks).length === 0) {
-      return `/map/${quest}.png`; // Quest image when no task is started
-    }
-
-    const completedTasks = Object.values(acceptedTasks).filter(
-      (t) => t.completed
-    ).length;
-    const totalTasks = Object.keys(acceptedTasks).length;
-
-    if (completedTasks === 0) {
-      return `/map/${quest}.png`; // Quest initial map
-    } else if (completedTasks === totalTasks) {
-      return `/map/${quest}F.png`; // Quest completed map
-    } else {
-      return `/map/${quest}${task}.png`; // Specific task image
-    }
-  }
-
   // Determine the map link
   const mapLink = getMapLink(userData, quest, task, completed);
 
   var response = ``;
 
-  // Task descriptions for each quest
+  // TODO: get from json, not hardcode
   const quests = {
     Q1: {
       title: "Quest 1 - Exploring the Github World",
       tasks: [
-        "Find the issue tracker",
-        "Find the pull-request menu",
-        "Find the fork button",
-        "Find the readme file",
-        "Find the contributors",
+        "Explore the issue tracker",
+        "Explore the pull-request menu",
+        "Explore the fork button",
+        "Explore the readme file",
+        "Explore the contributors",
       ],
     },
     Q2: {
@@ -1221,13 +1241,14 @@ async function displayQuests(user, db, context) {
 
   if (completed !== "" && completed.includes("Q1")) {
     response += "\n  - ~Quest 1 - Exploring the GitHub World~\n";
-  } 
+  }
   if (completed !== "" && completed.includes("Q2")) {
     response += "\n  - ~Quest 2 - Introducing yourself to the community~\n";
-  } 
+  }
   if (completed !== "" && completed.includes("Q3")) {
     response += "\n  - ~Quest 3 - Making your first contribution~\n";
-  } 
+  }
+  response += "\n";
 
   if (quest in quests) {
     const currentQuest = quests[quest];
@@ -1241,9 +1262,8 @@ async function displayQuests(user, db, context) {
       if (isCompleted) {
         response += `    - ~Task ${index + 1} - ${desc}~ [COMPLETED]\n`;
       } else if (task === taskNum) {
-        response += `    - Task ${index + 1} - [${desc}](https://github.com/${
-          repo.owner
-        }/${repo.repo}/issues/${repo.issue_number + 1})\n`;
+        response += `    - Task ${index + 1} - [${desc}](https://github.com/${repo.owner
+          }/${repo.repo}/issues/${repo.issue_number + 1})\n`;
       } else {
         response += `    - Task ${index + 1} - ${desc}\n`;
       }
