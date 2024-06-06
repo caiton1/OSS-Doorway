@@ -77,8 +77,9 @@ export default (app) => {
             break;
           case "new_user":
             // create user
-            status = await db.createUser(user);
-            await questFunctions.acceptQuest(context, db, user, "Q1");
+
+            status = await db.createUser(command.argument);
+            await questFunctions.acceptQuest(context, db, command.argument, "Q1");
             if (status) {
               response = responses.newUserResponse;
             } else {
