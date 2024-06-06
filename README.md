@@ -1,15 +1,16 @@
 
   User Stats:<br>
-  ![User Draft Stats](/userCards/draft-1717647404728.svg?)
+  ![User Draft Stats](/userCards/draft-1717647427053.svg?)
 
   
+  - ~Quest 1 - Exploring the GitHub World~
+
 Quest:
-  - Quest 1 - Exploring the Github World
-    - ~Task 1 - Explore the issue tracker~ [COMPLETED]
-    - ~Task 2 - Explore the pull-request menu~ [COMPLETED]
-    - ~Task 3 - Explore the fork button~ [COMPLETED]
-    - ~Task 4 - Explore the readme file~ [COMPLETED]
-    - Task 5 - [Explore the contributors](https://github.com/caiton1/OSS-Doorway/issues/134)
+  - Quest 2 - Introducing yourself to the community
+    - Task 1 - [Choose an issue that you would like to work with](https://github.com/caiton1/OSS-Doorway/issues/135)
+    - Task 2 - Assign your user to work on the issue
+    - Task 3 - Post a comment in the issue introducing yourself
+    - Task 4 - Mention a contributor that has most recently been active in the project to help you solve the issue
 
 Quests Map:
-![Quest Map](/map/Q1T5.png)
+![Quest Map](/map/Q2.png)
