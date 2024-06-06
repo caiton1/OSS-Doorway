@@ -1,12 +1,12 @@
 // TODO: check bot response
 
 import fs from "fs";
-const questFilePath = "./src/available-quests.json";
+const questFilePath = "./src/quest_config.json";
 const responseFilePath = "./src/response.json";
-const configFilePath = "./src/config.json";
 const questResponse = JSON.parse(fs.readFileSync(responseFilePath, "utf-8"));
-const repoName = JSON.parse(fs.readFileSync(configFilePath, "utf-8")).repo;
 const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
+const ossRepo = quests.oss_repo;
+const mapRepoLink = quests.map_repo_link;
 
 async function acceptQuest(context, db, user, quest) {
   const { owner, repo } = context.repo();
@@ -266,8 +266,8 @@ async function createQuestEnvironment(quest, task, context) {
       flag = true;
     }
   }
-  console.log(repoName);
-  response += `\n\n[Click here to start](https://github.com/${repoName})`;
+  console.log(ossRepo);
+  response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
 
   issueComment = context.issue({
     body: response,
@@ -302,7 +302,7 @@ async function validateTask(db, context, user) {
       if (task === "T1") {
         response = response.Task1;
         // Check issue tracker count
-        const issueCount = await getIssueCount(repoName);
+        const issueCount = await getIssueCount(ossRepo);
         if (issueCount !== null && context.payload.comment.body == issueCount) {
           response = response.successQ1T1;
           await completeTask(db, user, "Q1", "T1", context);
@@ -312,7 +312,7 @@ async function validateTask(db, context, user) {
       } else if (task === "T2") {
         response = response.Task2;
         // Check pull request count
-        const PRCount = await getPRCount(repoName);
+        const PRCount = await getPRCount(ossRepo);
         if (PRCount !== null && context.payload.comment.body == PRCount) {
           response = response.successQ1T2;
           await completeTask(db, user, "Q1", "T2", context);
@@ -342,8 +342,8 @@ async function validateTask(db, context, user) {
       } else if (task === "T5") {
         response = response.Task5;
         // Check for valid contributor name
-        // const correctAnswer = await getFirstContributor(repoName, context);
-        const correctAnswer = await countContributors(repoName, context);
+        // const correctAnswer = await getFirstContributor(ossRepo, context);
+        const correctAnswer = await countContributors(ossRepo, context);
         if (issueComment.toLowerCase() == correctAnswer) {
           await completeTask(db, user, "Q1", "T5", context);
           response = response.successQ1T5;
@@ -361,9 +361,9 @@ async function validateTask(db, context, user) {
       if (task === "T1") {
         // check open issues
         response = response.Task1;
-        const openIssueNums = await openIssues(repoName, context);
+        const openIssueNums = await openIssues(ossRepo, context);
         if (openIssueNums.includes(Number(issueComment)) && 
-            isFirstAssignee(repoName, user, Number(issueComment))) {
+            isFirstAssignee(ossRepo, user, Number(issueComment))) {
           response = response.successQ2T1;
           // add selected issue to database
           user_data.user_data.selectedIssue = Number(issueComment);
@@ -376,7 +376,7 @@ async function validateTask(db, context, user) {
       } else if (task === "T2") {
         response = response.Task2;
         // check assignee in selected issue
-        if (await checkAssignee(repoName, selectedIssue, user, context)) {
+        if (await checkAssignee(ossRepo, selectedIssue, user, context)) {
           await completeTask(db, user, "Q2", "T2", context);
           response = response.successQ2T2;
         } else {
@@ -386,7 +386,7 @@ async function validateTask(db, context, user) {
         response = response.Task3;
         // check if user commented
         if (
-          await userCommentedInIssue(repoName, selectedIssue, user, context)
+          await userCommentedInIssue(ossRepo, selectedIssue, user, context)
         ) {
           await completeTask(db, user, "Q2", "T3", context);
           response = response.successQ2T3;
@@ -396,7 +396,7 @@ async function validateTask(db, context, user) {
       } else if (task === "T4") {
         response = response.Task4;
         if (
-          await isContributorMentionedInIssue(repoName, selectedIssue, context)
+          await isContributorMentionedInIssue(ossRepo, selectedIssue, context)
         ) {
           await completeTask(db, user, "Q2", "T4", context);
           response = response.successQ2T4;
@@ -411,7 +411,7 @@ async function validateTask(db, context, user) {
       if (task === "T1") {
         response = response.Task1;
         const correctAnswer = "c";
-        //if (await userCommited(repoName, user, context)) {
+        //if (await userCommited(ossRepo, user, context)) {
         if (issueComment.toLowerCase().includes(correctAnswer)) {
           response = response.successQ3T1; // with current quest design, "non code contribution" tagged issue should be there, otherwise will need to create it programatically
           await completeTask(db, user, "Q3", "T1", context);
@@ -420,7 +420,7 @@ async function validateTask(db, context, user) {
         }
       } else if (task === "T2") {
         response = response.Task2;
-        if (await userPRAndComment(repoName, user, context)) {
+        if (await userPRAndComment(ossRepo, user, context)) {
           response = response.successQ3T2;
           await completeTask(db, user, "Q3", "T1", context);
         } else {
@@ -429,7 +429,7 @@ async function validateTask(db, context, user) {
       } else if (task === "T3") {
         response = response.Task3;
         // issue closed
-        if (await issueClosed(repoName, selectedIssue, context)) {
+        if (await issueClosed(ossRepo, selectedIssue, context)) {
           response = response.successQ3T3;
 
           await completetask(db, user, "Q3", "T1", context);
@@ -1141,7 +1141,7 @@ async function updateReadme(user, owner, repo, context, db) {
 // Function to get the map link based on the current quest and task
 function getMapLink(userData, quest, task, completed) {
   if (!userData || !userData.user_data || !userData.user_data.accepted) {
-    return "/map/Q1.png"; // Return default map link if userData or accepted quests are not available
+    return `${mapRepoLink}/Q1.png`; // Return default map link if userData or accepted quests are not available
   }
 
   if (quest === "") {
@@ -1156,15 +1156,15 @@ function getMapLink(userData, quest, task, completed) {
 
       // Return the map link for the next available quest if exists
       if (nextQuest) {
-        return `/map/${nextQuest}.png`;
+        return `${mapRepoLink}/${nextQuest}.png`;
       }
     }
-    return "/map/Q1.png"; // Fall through if no next quest is available or no quest is currently set
+    return `${mapRepoLink}/Q1.png`; // Fall through if no next quest is available or no quest is currently set
   }
 
   const acceptedTasks = userData.user_data.accepted[quest];
   if (!acceptedTasks || Object.keys(acceptedTasks).length === 0) {
-    return `/map/${quest}.png`; // Quest image when no task is started
+    return `${mapRepoLink}/${quest}.png`; // Quest image when no task is started
   }
 
   const completedTasks = Object.values(acceptedTasks).filter(
@@ -1173,18 +1173,13 @@ function getMapLink(userData, quest, task, completed) {
   const totalTasks = Object.keys(acceptedTasks).length;
 
   if (completedTasks === 0) {
-    return `/map/${quest}.png`; // Quest initial map
+    return `${mapRepoLink}/${quest}.png`; // Quest initial map
   } else if (completedTasks === totalTasks) {
-    return `/map/${quest}F.png`; // Quest completed map
+    return `${mapRepoLink}/${quest}F.png`; // Quest completed map
   } else {
-    return `/map/${quest}${task}.png`; // Specific task image
+    return `${mapRepoLink}/${quest}${task}.png`; // Specific task image
   }
 }
-// Function to get the user card link based onthe current quest and task
-function getCardLink(userData, quest, task, completed) {
-  // TODO:
-}
-
 async function displayQuests(user, db, context) {
   // Get user data
   const repo = context.issue();
