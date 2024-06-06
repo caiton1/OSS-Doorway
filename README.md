@@ -1,6 +1,6 @@
 
   User Stats:<br>
-  ![User Draft Stats](/userCards/userCards/draft.svg?)
+  ![User Draft Stats](/userCards/userCards/draft2.svg?)
 
   
 Quest:
@@ -8,8 +8,8 @@ Quest:
     - ~Task 1 - Explore the issue tracker~ [COMPLETED]
     - ~Task 2 - Explore the pull-request menu~ [COMPLETED]
     - ~Task 3 - Explore the fork button~ [COMPLETED]
-    - Task 4 - [Explore the readme file](https://github.com/caiton1/OSS-Doorway/issues/127)
-    - Task 5 - Explore the contributors
+    - ~Task 4 - Explore the readme file~ [COMPLETED]
+    - Task 5 - [Explore the contributors](https://github.com/caiton1/OSS-Doorway/issues/128)
 
 Quests Map:
-![Quest Map](/map/Q1T4.png)
+![Quest Map](/map/Q1T5.png)
