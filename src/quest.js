@@ -1174,7 +1174,7 @@ function getMapLink(userData, quest, task, completed) {
 
   // if all quests completed
   if (completed.length === 3){ // TODO: remove hard code, improve mess of a function
-    return `F.png`;
+    return `${mapRepoLink}/F.png`;
   }
   if (quest === "") {
     // Check if the current quest is completed and find the next available quest
