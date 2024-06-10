@@ -1,5 +1,3 @@
-// TODO: check bot response
-
 import fs from "fs";
 const questFilePath = "./src/quest_config.json";
 const responseFilePath = "./src/response.json";
@@ -39,7 +37,6 @@ async function acceptQuest(context, db, user, quest) {
         await updateReadme(user, owner, repo, context, db);
         return true;
       } else {
-        // TODO: may later need to implement reason for false, like already accepted, or user doesnt exist
         return false;
       }
     } else {
@@ -51,7 +48,6 @@ async function acceptQuest(context, db, user, quest) {
   }
 }
 
-// TODO: remove point exploit (user can complete task, earn points, but then drop quest and restart, not loosing earned points)
 async function removeQuest(db, user) {
   try {
     const user_data = await db.downloadUserData(user);
@@ -175,7 +171,6 @@ async function createQuestEnvironment(quest, task, context) {
   var title = quests;
   var flag = false; // check for if task is selected
   // most will be creating an issue with multiple choice
-  // quest 1 TODO: use another repo, use API enpoint to find issue numbers, include link to issues in the project
   if (quest === "Q1") {
     response = response.Quest1;
     title = title.Q1;
@@ -266,7 +261,6 @@ async function createQuestEnvironment(quest, task, context) {
       flag = true;
     }
   }
-  console.log(ossRepo);
   response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
 
   issueComment = context.issue({
@@ -289,10 +283,11 @@ async function createQuestEnvironment(quest, task, context) {
 
 async function validateTask(db, context, user) {
   try {
-    const userData = await db.downloadUserData(user);
+    var user_data = await db.downloadUserData(user);
+    const selectedIssue = user_data.user_data.selectedIssue;
     // TODO: add exception handling
-    const task = userData.user_data.current.task;
-    const quest = userData.user_data.current.quest;
+    const task = user_data.user_data.current.task;
+    const quest = user_data.user_data.current.quest;
     var issueComment = context.payload.comment.body;
     var response = questResponse;
     const { owner, repo } = context.repo();
@@ -332,7 +327,7 @@ async function validateTask(db, context, user) {
       } else if (task === "T4") {
         response = response.Task4;
         // Check issue body for a hint about readme
-        const hint = "c";
+        const hint = "d";
         if (issueComment.toLowerCase().includes(hint)) {
           response = response.successQ1T4;
           await completeTask(db, user, "Q1", "T4", context);
@@ -355,15 +350,13 @@ async function validateTask(db, context, user) {
     // quest 2
     else if (quest === "Q2") {
       response = response.Quest2;
-      var user_data = await db.downloadUserData(user);
-      const selectedIssue = user_data.user_data.selectedIssue;
       // choose issue that you would like to work with
       if (task === "T1") {
         // check open issues
         response = response.Task1;
         const openIssueNums = await openIssues(ossRepo, context);
         if (openIssueNums.includes(Number(issueComment)) && 
-            isFirstAssignee(ossRepo, user, Number(issueComment))) {
+            await isFirstAssignee(ossRepo, user, Number(issueComment))) {
           response = response.successQ2T1;
           // add selected issue to database
           user_data.user_data.selectedIssue = Number(issueComment);
@@ -410,7 +403,7 @@ async function validateTask(db, context, user) {
       response = response.Quest3;
       if (task === "T1") {
         response = response.Task1;
-        const correctAnswer = "c";
+        const correctAnswer = "a";
         //if (await userCommited(ossRepo, user, context)) {
         if (issueComment.toLowerCase().includes(correctAnswer)) {
           response = response.successQ3T1; // with current quest design, "non code contribution" tagged issue should be there, otherwise will need to create it programatically
@@ -422,7 +415,7 @@ async function validateTask(db, context, user) {
         response = response.Task2;
         if (await userPRAndComment(ossRepo, user, context)) {
           response = response.successQ3T2;
-          await completeTask(db, user, "Q3", "T1", context);
+          await completeTask(db, user, "Q3", "T2", context);
         } else {
           response = response.errorQ3T2;
         }
@@ -432,7 +425,7 @@ async function validateTask(db, context, user) {
         if (await issueClosed(ossRepo, selectedIssue, context)) {
           response = response.successQ3T3;
 
-          await completetask(db, user, "Q3", "T1", context);
+          await completeTask(db, user, "Q3", "T3", context);
         } else {
           response = response.errorQ3T3;
         }
@@ -468,19 +461,23 @@ async function getIssueCount(repo) {
 
 async function isFirstAssignee(repo, user, selectedIssue) {
   try {
-    const response = await fetch(`https://api.github.com/repos/${repo}/issues`);
-    const issues = await response.json();
-    const issueSelected = issues.find(issue => issue.number == selectedIssue);
-    const assignees = issueSelected.assignees;
-    if (assignees.length == 1) { // TODO: check if issue exist
-      console.log("user only assignee");
-      return true;
+    const response = await fetch(`https://api.github.com/repos/${repo}/issues/${selectedIssue}`);
+    if (!response.ok) {
+      throw new Error(`Issue ${selectedIssue} not found in repository ${repo}`);
+    }
+    const issueSelected = await response.json();
+    const assignees = issueSelected.assignees.map(assignee => assignee.login);
+    
+    if (assignees.length === 0) {
+      return true; // no assignees
+    } else if (assignees.length === 1 && assignees.includes(user)) {
+      return true; // user first assignee
     } else {
-      console.log("user not only");
-      return false;
+      return false; // other assignee or issue doesnt exist
     }
   } catch (error) {
     console.error("Error checking assignees: " + error);
+    return false;
   }
 }
 
@@ -689,7 +686,6 @@ async function userPRAndComment(repo, user, context) {
     );
 
     if (!userPullRequest) {
-      console.log(`User ${user} has not submitted any pull requests.`);
       return false;
     }
 
@@ -709,14 +705,8 @@ async function userPRAndComment(repo, user, context) {
     );
 
     if (userCommented) {
-      console.log(
-        `User ${user} has submitted a pull request and commented on it.`
-      );
       return true;
     } else {
-      console.log(
-        `User ${user} has submitted a pull request but has not commented on it.`
-      );
       return false;
     }
   } catch (error) {
@@ -1030,7 +1020,6 @@ async function generateSVG(user, owner, repo, context, db) {
 
 
 async function closeIssues(context) {
-  console.log("close issues called");
   const issue = context.payload.issue;
 
   // Check if the comment contains the command to close all issues
@@ -1056,7 +1045,6 @@ async function closeIssues(context) {
           issue_number: issue.number,
           state: "closed",
         });
-        console.log(`Closed issue #${issue.number}`);
       } catch (error) {
         console.error(`Failed to close issue #${issue.number}:`, error);
       }
@@ -1065,9 +1053,30 @@ async function closeIssues(context) {
 }
 
 async function resetReadme(owner, repo, context) {
-  var content = "## OSS-Doorway initial page (need to change)\n\n";
-  content += `Get started by clicking [here](github.com/${owner}/${repo}/issues), creating a new issue and type /new_user in issue comments \n\n`;
-  content += "Quest Map:\n![Map](/map/Q1.png)\n";
+  var content = `## 🛡️ OSSDoorway: A Gamified Learning Environment for OSS Contributions
+
+OSSDoorway is a free, open-source platform designed to engage users in learning about the open-source software (OSS) contribution process through interactive quests. Users embark on educational quests that guide them through the various stages of OSS contributions, such as submitting pull requests, writing documentation, and solving issues. Each quest is designed to be both informative and engaging, incorporating game elements like progression bars, XP, and levels.
+
+OSSDoorway quests and activities are designed to be accessible and inclusive, ensuring that users from diverse backgrounds and skill levels can benefit from the platform. Join OSSDoorway today and start your journey towards becoming a proficient OSS contributor!
+
+---
+
+### Setup
+Requirnments:
+- Node.js 18+
+- npm 10+
+- MongoDB
+
+How to run:
+1. Run NPM start and go to generated link
+2. Follow instructions
+3. in .env create two entries (subject to change later)
+  - URI <-- uri to mongoDB
+  - DB_NAME <-- name of mongoDB
+
+#### Commands
+In issues tab, you can interact with basic bot functions, create a new issue and it will list available commands.
+`;
   try {
     const {
       data: { sha },
@@ -1076,7 +1085,6 @@ async function resetReadme(owner, repo, context) {
       repo,
       path: "README.md",
     });
-    // todo: change
     await context.octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
@@ -1084,12 +1092,12 @@ async function resetReadme(owner, repo, context) {
       message: "Reseting README.md",
       content: Buffer.from(content).toString("base64"),
       committer: {
-        name: "gitBot",
-        email: "connor.nicolai.aiton@gmail.com",
+        name: "QuestBuddy",
+        email: "naugitbot@gmail.com",
       },
       author: {
-        name: "caiton1",
-        email: "connor.nicolai.aiton@gmail.com",
+        name: "QuestBuddy",
+        email: "naugitbot@gmail.com",
       },
       sha: sha,
     });
@@ -1103,20 +1111,40 @@ async function updateReadme(user, owner, repo, context, db) {
     // generate new svg
     const newSVG = await generateSVG(user, owner, repo, context, db);
     // updated content, user card, quests and tasks, quest map
-    var newContent = `
+    var newContent = ` ## 🛡️ OSSDoorway: A Gamified Learning Environment for OSS Contributions
+
+OSSDoorway is a free, open-source platform designed to engage users in learning about the open-source software (OSS) contribution process through interactive quests. Users embark on educational quests that guide them through the various stages of OSS contributions, such as submitting pull requests, writing documentation, and solving issues. Each quest is designed to be both informative and engaging, incorporating game elements like progression bars, XP, and levels.
+
+OSSDoorway quests and activities are designed to be accessible and inclusive, ensuring that users from diverse backgrounds and skill levels can benefit from the platform. Join OSSDoorway today and start your journey towards becoming a proficient OSS contributor!
+
+---
+
+`;
+
+    newContent += `
   User Stats:<br>
   ![User Draft Stats](/${newSVG}?)
-
   `;
+
     newContent += await displayQuests(user, db, context);
-    const {
-      data: { sha },
-    } = await context.octokit.repos.getReadme({
+
+    // Get the README file
+    const readmeResponse = await context.octokit.repos.getReadme({
       owner,
       repo,
       path: "README.md",
     });
-    // todo: change
+
+    const {
+      data: { sha },
+    } = readmeResponse;
+
+    // Verify the sha value
+    if (!sha) {
+      throw new Error("README sha is undefined or null");
+    }
+
+    // Update the README file
     await context.octokit.repos.createOrUpdateFileContents({
       owner,
       repo,
@@ -1124,12 +1152,12 @@ async function updateReadme(user, owner, repo, context, db) {
       message: "Update README.md",
       content: Buffer.from(newContent).toString("base64"),
       committer: {
-        name: "gitBot",
-        email: "connor.nicolai.aiton@gmail.com",
+        name: "QuestBuddy",
+        email: "naugitbot@gmail.com",
       },
       author: {
-        name: "caiton1",
-        email: "connor.nicolai.aiton@gmail.com",
+        name: "QuestBuddy",
+        email: "naugitbot@gmail.com",
       },
       sha: sha,
     });
@@ -1140,18 +1168,22 @@ async function updateReadme(user, owner, repo, context, db) {
 
 // Function to get the map link based on the current quest and task
 function getMapLink(userData, quest, task, completed) {
-  if (!userData || !userData.user_data || !userData.user_data.accepted) {
+  if (!userData || !userData.user_data) {
     return `${mapRepoLink}/Q1.png`; // Return default map link if userData or accepted quests are not available
   }
 
+  // if all quests completed
+  if (completed.length === 3){ // TODO: remove hard code, improve mess of a function
+    return `F.png`;
+  }
   if (quest === "") {
     // Check if the current quest is completed and find the next available quest
     if (completed !== "") {
-      const quests = Object.keys(userData.user_data.accepted);
-      const currentQuestIndex = quests.indexOf(completed);
+      const accepted_quests = Object.keys(userData.user_data.accepted);
+      const currentQuestIndex = accepted_quests.indexOf(completed);
       const nextQuest =
-        currentQuestIndex !== -1 && currentQuestIndex + 1 < quests.length
-          ? quests[currentQuestIndex + 1]
+        currentQuestIndex !== -1 && currentQuestIndex + 1 < accepted_quests.length
+          ? accepted_quests[currentQuestIndex + 1]
           : null;
 
       // Return the map link for the next available quest if exists
@@ -1197,12 +1229,10 @@ async function displayQuests(user, db, context) {
   if (userData.user_data.completed !== undefined) {
     completed = userData.user_data.completed;
   }
-
   // Determine the map link
   const mapLink = getMapLink(userData, quest, task, completed);
 
   var response = ``;
-
   // TODO: get from json, not hardcode
   const quests = {
     Q1: {
@@ -1233,7 +1263,7 @@ async function displayQuests(user, db, context) {
       ],
     },
   };
-
+  
   if (completed !== "" && completed.includes("Q1")) {
     response += "\n  - ~Quest 1 - Exploring the GitHub World~\n";
   }
@@ -1244,7 +1274,6 @@ async function displayQuests(user, db, context) {
     response += "\n  - ~Quest 3 - Making your first contribution~\n";
   }
   response += "\n";
-
   if (quest in quests) {
     const currentQuest = quests[quest];
     response += `Quest:\n  - ${currentQuest.title}\n`;
@@ -1265,7 +1294,6 @@ async function displayQuests(user, db, context) {
     });
   }
   response += `\nQuests Map:\n![Quest Map](${mapLink})`;
-
   return response;
 }
 

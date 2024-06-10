@@ -93,6 +93,9 @@ export default (app) => {
             await questFunctions.resetReadme(owner, repo, context);
             await questFunctions.closeIssues(context);
             break;
+          case "display":
+            await questFunctions.updateReadme(user, owner, repo, context, db);
+            break;
           default:
             // respond unknown command and avaialble commands
             response = responses.invalidCommand;
@@ -122,7 +125,7 @@ export default (app) => {
 
 // match and break down / command
 function parseCommand(comment) {
-  const regex = /^(\/(new_user|accept|drop|reset))(\s.*)?$/;
+  const regex = /^(\/(new_user|accept|drop|reset|display))(\s.*)?$/;
   const match = comment.match(regex);
   if (match) {
     const action = match[2];
