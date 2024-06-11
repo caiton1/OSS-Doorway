@@ -969,7 +969,7 @@ async function generateSVG(user, owner, repo, context, db) {
             <svg x="0" y="0">
                 <g transform="translate(0, 0)">
                     <g class="stagger" style="animation-delay: 450ms" transform="translate(25, 0)">
-                        <text class="stat bold" y="12.5">Total Quests Completed 🎲:</text>
+                        <text class="stat bold" y="12.5">Quests Completed ❓:</text>
                         <text class="stat bold" x="199.01" y="12.5" data-testid="stars">${userDocument.user_data.completed && userDocument.user_data.completed !== undefined ? userDocument.user_data.completed : 0}</text>
                     </g>
                 </g>
@@ -1286,8 +1286,8 @@ async function displayQuests(user, db, context) {
       if (isCompleted) {
         response += `    - ~Task ${index + 1} - ${desc}~ [COMPLETED]\n`;
       } else if (task === taskNum) {
-        response += `    - Task ${index + 1} - [${desc}](https://github.com/${repo.owner
-          }/${repo.repo}/issues/${repo.issue_number + 1})\n`;
+        response += `    - Task ${index + 1} - ${desc} [[Click here to start](https://github.com/${repo.owner
+          }/${repo.repo}/issues/${repo.issue_number + 1})]\n`;
       } else {
         response += `    - Task ${index + 1} - ${desc}\n`;
       }
