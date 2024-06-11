@@ -442,13 +442,14 @@ async function validateTask(db, context, user) {
   }
 }
 
-// supporting functions for quest validation
 async function getIssueCount(repo) {
   try {
     const response = await fetch(`https://api.github.com/repos/${repo}/issues`);
     if (response.ok) {
       const issues = await response.json();
-      return issues.length;
+      // Filter out pull requests
+      const actualIssues = issues.filter(issue => !issue.pull_request);
+      return actualIssues.length;
     } else {
       console.error("Error:", response.status);
       return null;
