@@ -86,13 +86,13 @@ async function completeQuest(db, user, quest, context) {
         await db.updateData(user_data);
 
         // reset quest accepted and current
-        removeQuest(db, user);
+        await removeQuest(db, user);
 
         if (quest === "Q1") {
-          acceptQuest(context, db, user, "Q2");
+          await acceptQuest(context, db, user, "Q2");
         }
         if (quest === "Q2") {
-          acceptQuest(context, db, user, "Q3");
+          await acceptQuest(context, db, user, "Q3");
         }
 
         return true; // Quest successfully completed
