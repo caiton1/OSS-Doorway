@@ -94,7 +94,8 @@ export default (app) => {
             await questFunctions.closeIssues(context);
             break;
           case "display":
-            await questFunctions.updateReadme(user, owner, repo, context, db);
+
+            await questFunctions.updateReadme(command.argument, owner, repo, context, db);
             break;
           default:
             // respond unknown command and avaialble commands
