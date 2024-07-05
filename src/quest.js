@@ -31,7 +31,13 @@ async function acceptQuest(context, db, user, quest) {
                 // add list of tasks to user in database
                 for (const task in quests[quest]) {
                     if (task !== "metadata") {
-                        user_data.user_data.accepted[quest][task] = { completed: false };
+                        user_data.user_data.accepted[quest][task] = {
+                            completed: false,
+                            attempts: 0,
+                            timeStart: 0,
+                            timeEnd: 0.00,
+                            issueNum: 0
+                        };
                     }
                     // track current progress
                     user_data.user_data.current = {
@@ -42,7 +48,7 @@ async function acceptQuest(context, db, user, quest) {
                 }
                 await db.updateData(user_data);
 
-                await createQuestEnvironment(quest, "T1", context);
+                await createQuestEnvironment(db, user, quest, "T1", context);
                 // update character stats
                 await updateReadme(user, owner, repo, context, db);
                 return true;
@@ -54,24 +60,6 @@ async function acceptQuest(context, db, user, quest) {
         }
     } catch (error) {
         console.error("Error accepting quest: " + error);
-        return false;
-    }
-}
-
-// removes the current accepted quest, however not the completed quests
-async function removeQuest(db, user) {
-    try {
-        const user_data = await db.downloadUserData(user);
-        if (user_data.user_data.accepted) {
-            delete user_data.user_data.accepted;
-            delete user_data.user_data.current;
-            await db.updateData(user_data);
-            return true;
-        } else {
-            return false;
-        }
-    } catch (error) {
-        console.error("Error removing quest:", error);
         return false;
     }
 }
@@ -91,6 +79,9 @@ export async function completeTask(db, user, quest, task, context) {
             user_data.user_data.accepted[quest][task]
         ) {
             user_data.user_data.accepted[quest][task].completed = true;
+            user_data.user_data.accepted[quest][task].timeEnd = Date.now();
+            user_data.user_data.accepted[quest][task].issueNum = context.issue().issue_number;
+
             user_data.user_data.points += points;
             user_data.user_data.xp += xp;
 
@@ -120,6 +111,8 @@ export async function completeTask(db, user, quest, task, context) {
 
             if (user_data.user_data.current) {
                 await createQuestEnvironment(
+                    db,
+                    user,
                     quest,
                     user_data.user_data.current.task,
                     context
@@ -149,17 +142,18 @@ async function completeQuest(db, user, quest, context) {
 
             // clear quest and task
             if (tasks_completed) {
-                delete user_data.user_data.accepted[quest];
                 if (!user_data.user_data.completed) {
-                    user_data.user_data.completed = [];
+                    user_data.user_data.completed = {};
                 }
+                
                 // add quest to users completed list
-                user_data.user_data.completed.push(quest);
+                user_data.user_data.completed[quest] = user_data.user_data.accepted[quest];
+
+                delete user_data.user_data.accepted;
+                delete user_data.user_data.current;
+
                 // update user data in DB
                 await db.updateData(user_data);
-
-                // reset quest accepted and current
-                await removeQuest(db, user);
 
                 if (quest === "Q1") {
                     await acceptQuest(context, db, user, "Q2");
@@ -167,6 +161,7 @@ async function completeQuest(db, user, quest, context) {
                 if (quest === "Q2") {
                     await acceptQuest(context, db, user, "Q3");
                 }
+
 
                 return true; // Quest successfully completed
             }
@@ -177,11 +172,12 @@ async function completeQuest(db, user, quest, context) {
     return false; // Quest not completed
 }
 
-async function createQuestEnvironment(quest, task, context) {
+async function createQuestEnvironment(db, user, quest, task, context) {
     const { owner, repo } = context.repo();
     var response = questResponse;
     var title = quests;
-    var flag = false; // check for if task is selected
+    var flag = false;
+    var user_data = await db.downloadUserData(user); // check for if task is selected
     // most will be creating an issue with multiple choice
 
     try {
@@ -190,6 +186,8 @@ async function createQuestEnvironment(quest, task, context) {
             const questData = quests[quest];
             response = response[quest];
             if (questData[task]) {
+                user_data.user_data.accepted[quest][task].timeStart = Date.now()
+                await db.updateData(user_data);
                 response = response[task].accept;
                 title = questData[task].desc;
             }
@@ -217,16 +215,17 @@ async function createQuestEnvironment(quest, task, context) {
 async function validateTask(db, context, user) {
     try {
         var user_data = await db.downloadUserData(user);
-        console.log(user)
 
-        // TODO: add exception handling
         const selectedIssue = user_data.user_data.selectedIssue;
         const task = user_data.user_data.current.task;
         const quest = user_data.user_data.current.quest;
-        const taskHandler = taskMapping[quest][task];
-        var response = questResponse[quest][task];
         const { owner, repo } = context.repo();
 
+        user_data.user_data.accepted[quest][task].attempts += 1;
+        await db.updateData(user_data);
+
+        const taskHandler = taskMapping[quest][task];
+        var response = questResponse[quest][task];
         response = await taskHandler(db, user, context, ossRepo, response, selectedIssue);
 
         response += `\n\nReturn [Home](https://github.com/${owner}/${repo})`;
@@ -249,9 +248,11 @@ async function generateSVG(user, owner, repo, context, db) {
         const radius = 40;
         const circumference = 2 * Math.PI * radius;
         const offset = circumference * (1 - percentage / 100);
-        const numCompleted = 9999; // TODO: get num quest completed
-        const points = Number(userDocument.user_data.points); // TODO: get num points completed
-        const level = Math.ceil(Number(userDocument.user_data.xp)/100); // TODO: calculate level
+        const numCompleted = userDocument.user_data && userDocument.user_data.completed
+            ? Object.keys(userDocument.user_data.completed).length
+            : 0;
+        const points = Number(userDocument.user_data.points);
+        const level = Math.ceil(Number(userDocument.user_data.xp) / 100);
 
         // SVG content
         const svgTemplate = fs.readFileSync(svgTemplatePath, 'utf-8')
@@ -401,6 +402,7 @@ function getMapLink(userData, quest, task, completed) {
     }
 }
 
+// TODO: improve quest tracking then come back to this
 async function displayQuests(user, db, context) {
     // Get user data
     const repo = context.issue();
@@ -408,6 +410,7 @@ async function displayQuests(user, db, context) {
     var task = "";
     var quest = "";
     var completed = "";
+    var response = ``;
 
     // TODO: add exception handling
     if (userData.user_data.current !== undefined) {
@@ -418,70 +421,47 @@ async function displayQuests(user, db, context) {
     if (userData.user_data.completed !== undefined) {
         completed = userData.user_data.completed;
     }
+
     // Determine the map link
     const mapLink = getMapLink(userData, quest, task, completed);
 
-    var response = ``;
-    // TODO: get from json, not hardcode
-    const quests = {
-        Q1: {
-            title: "Quest 1 - Exploring the Github World",
-            tasks: [
-                "Explore the issue tracker",
-                "Explore the pull-request menu",
-                "Explore the fork button",
-                "Explore the readme file",
-                "Explore the contributors",
-            ],
-        },
-        Q2: {
-            title: "Quest 2 - Introducing yourself to the community",
-            tasks: [
-                "Choose an issue that you would like to work with",
-                "Assign your user to work on the issue",
-                "Post a comment in the issue introducing yourself",
-                "Mention a contributor that has most recently been active in the project to help you solve the issue",
-            ],
-        },
-        Q3: {
-            title: "Quest 3 - Making your first contribution",
-            tasks: [
-                "Solve the issue (upload a file)",
-                "Submit a pull request",
-                "Close the issue",
-            ],
-        },
-    };
 
-    if (completed !== "" && completed.includes("Q1")) {
-        response += "\n  - ~Quest 1 - Exploring the GitHub World~\n";
-    }
-    if (completed !== "" && completed.includes("Q2")) {
-        response += "\n  - ~Quest 2 - Introducing yourself to the community~\n";
-    }
-    if (completed !== "" && completed.includes("Q3")) {
-        response += "\n  - ~Quest 3 - Making your first contribution~\n";
-    }
-    response += "\n";
-    if (quest in quests) {
-        const currentQuest = quests[quest];
-        response += `Quest:\n  - ${currentQuest.title}\n`;
-        currentQuest.tasks.forEach((desc, index) => {
-            const taskNum = `T${index + 1}`;
-            const isCompleted =
-                userData.user_data.accepted[quest] &&
-                userData.user_data.accepted[quest][taskNum] &&
-                userData.user_data.accepted[quest][taskNum].completed;
+    const questData = quests;
+    // accepted/ current
+    if (quest in questData) {
+        response += `❗️ Current Quest: \n  - ${quest} - ${questData[quest].metadata.title}\n`;
+        for (let taskKey in questData[quest]) {
+            if (taskKey === "metadata") continue;
+            // check if user has completed or not
+            // if completed, strikeout but keep the issue number link
+            let isCompleted = userData.user_data.accepted[quest]?.[taskKey].completed ?? false;
+
             if (isCompleted) {
-                response += `    - ~Task ${index + 1} - ${desc}~ [COMPLETED]\n`;
-            } else if (task === taskNum) {
-                response += `    - Task ${index + 1} - ${desc} [[Click here to start](https://github.com/${repo.owner
-                    }/${repo.repo}/issues/${repo.issue_number + 1})]\n`;
+                response += `    -  ~${taskKey} - ${questData[quest][taskKey].desc}~ [[COMPLETED](https://github.com/${repo.owner
+                    }/${repo.repo}/issues/${userData.user_data.accepted[quest][taskKey].issueNum})]\n`;
+            } else if (task == taskKey) {
+                response += `    - ${taskKey} - ${questData[quest][taskKey].desc} [[Click here to start](https://github.com/${repo.owner
+                    }/${repo.repo}/issues/${repo.issue_number + 1})]\n`; // WARNING, this is assuming user is responding on the last issue
             } else {
-                response += `    - Task ${index + 1} - ${desc}\n`;
+                response += `    - ${taskKey} - ${questData[quest][taskKey].desc}\n`;
             }
-        });
+        }
+        response += '\n';
     }
+
+    // completed
+    if (completed) {
+        response += `✅ Completed Quests: \n`;
+        for (let questKey in completed) {
+            response += `  - ${questKey} - ${questData[questKey].metadata.title}\n`;
+            for (let taskKey in questData[questKey]) {
+                if(taskKey === "metadata") continue;
+                response += `    - ~${taskKey} - ${questData[questKey][taskKey].desc}~ [[COMPLETED](https://github.com/${repo.owner
+                    }/${repo.repo}/issues/${userData.user_data.completed[questKey][taskKey].issueNum})]\n`;
+            }
+        }
+    }
+
     response += `\nQuests Map:\n![Quest Map](${mapLink})`;
     return response;
 }
@@ -537,7 +517,6 @@ async function updateReadme(user, owner, repo, context, db) {
 export const questFunctions = {
     completeTask,
     acceptQuest,
-    removeQuest,
     completeQuest,
     displayQuests,
     createQuestEnvironment,

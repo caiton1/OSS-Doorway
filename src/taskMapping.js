@@ -10,6 +10,7 @@ async function handleQ1T1(db, user, context, ossRepo, response, selectedIssue) {
         return response.success;
     }
     return response.error;
+
 }
 
 async function handleQ1T2(db, user, context, ossRepo, response, selectedIssue) {
@@ -51,7 +52,7 @@ async function handleQ1T5(db, user, context, ossRepo, response, selectedIssue) {
 
 // Q2
 async function handleQ2T1(db, user, context, ossRepo, response, selectedIssue) {
-    const issueComment = context.payload.body;
+    const issueComment = context.payload.comment.body;
     const openIssues = await utils.openIssues(ossRepo, context);
     const firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
 
