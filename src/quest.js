@@ -109,7 +109,7 @@ export async function completeTask(db, user, quest, task, context) {
                 state: "closed",
             });
 
-            if (user_data.user_data.current) {
+            if (user_data.user_data.current && user_data.user_data.current.task != null) {
                 await createQuestEnvironment(
                     db,
                     user,
@@ -145,7 +145,7 @@ async function completeQuest(db, user, quest, context) {
                 if (!user_data.user_data.completed) {
                     user_data.user_data.completed = {};
                 }
-                
+
                 // add quest to users completed list
                 user_data.user_data.completed[quest] = user_data.user_data.accepted[quest];
 
@@ -191,22 +191,23 @@ async function createQuestEnvironment(db, user, quest, task, context) {
                 response = response[task].accept;
                 title = questData[task].desc;
             }
+
+
+            // link to OSS repo
+            response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+
+            // create issue for task interaction
+            const issueComment = context.issue({
+                body: response,
+            });
+            // new issue for new task
+            await context.octokit.issues.create({
+                owner: owner,
+                repo: repo,
+                title: `❗ ${quest} ${task}: ` + title,
+                body: response,
+            });
         }
-
-        // link to OSS repo
-        response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
-
-        // create issue for task interaction
-        const issueComment = context.issue({
-            body: response,
-        });
-        // new issue for new task
-        await context.octokit.issues.create({
-            owner: owner,
-            repo: repo,
-            title: `❗ ${quest} ${task}: ` + title,
-            body: response,
-        });
     } catch (error) {
         console.error("Error creating new issue: ", error);
     }
@@ -253,6 +254,10 @@ async function generateSVG(user, owner, repo, context, db) {
             : 0;
         const points = Number(userDocument.user_data.points);
         const level = Math.ceil(Number(userDocument.user_data.xp) / 100);
+        const completedQuests = userDocument.user_data.completed &&
+            userDocument.user_data.completed !== undefined
+            ? Object.keys(userDocument.user_data.completed)
+            : ""
 
         // SVG content
         const svgTemplate = fs.readFileSync(svgTemplatePath, 'utf-8')
@@ -261,7 +266,8 @@ async function generateSVG(user, owner, repo, context, db) {
             .replace('${percentage}', percentage)
             .replace('${numCompleted}', numCompleted)
             .replace('${points}', points)
-            .replace('${level}', level);
+            .replace('${level}', level)
+            .replace('${completedQuests}', completedQuests);
 
         // Generate a unique filename based on the current timestamp to cache bust github
         const timestamp = Date.now();
@@ -355,19 +361,20 @@ async function resetReadme(owner, repo, context) {
     }
 }
 
-// Temp solution to map feature, avoiding github cache TTL
+// Temp solution to map feature, avoiding github cache TTL 
+// TODO: null object bug here maybe?
 function getMapLink(userData, quest, task, completed) {
     if (!userData || !userData.user_data) {
         return `${mapRepoLink}/Q1.png`; // Return default map link if userData or accepted quests are not available
     }
 
     // if all quests completed
-    if (completed.length === 3) { // TODO: remove hard code, improve mess of a function
+    if (Object.keys(completed).length === 3) { // TODO: remove hard code, improve mess of a function
         return `${mapRepoLink}/F.png`;
     }
     if (quest === "") {
         // Check if the current quest is completed and find the next available quest
-        if (completed !== "") {
+        if (completed !== "" && userData.user_data.accepted != null) {
             const accepted_quests = Object.keys(userData.user_data.accepted);
             const currentQuestIndex = accepted_quests.indexOf(completed);
             const nextQuest =
@@ -402,9 +409,9 @@ function getMapLink(userData, quest, task, completed) {
     }
 }
 
-// TODO: improve quest tracking then come back to this
+// TODO: NULL bug here
 async function displayQuests(user, db, context) {
-    // Get user data
+    // Get user data 
     const repo = context.issue();
     const userData = await db.downloadUserData(user);
     var task = "";
@@ -422,14 +429,13 @@ async function displayQuests(user, db, context) {
         completed = userData.user_data.completed;
     }
 
-    // Determine the map link
     const mapLink = getMapLink(userData, quest, task, completed);
 
 
     const questData = quests;
     // accepted/ current
     if (quest in questData) {
-        response += `❗️ Current Quest: \n  - ${quest} - ${questData[quest].metadata.title}\n`;
+        response += `⚙️ Current Quest: \n  - ${quest} - ${questData[quest].metadata.title}\n`;
         for (let taskKey in questData[quest]) {
             if (taskKey === "metadata") continue;
             // check if user has completed or not
@@ -455,7 +461,7 @@ async function displayQuests(user, db, context) {
         for (let questKey in completed) {
             response += `  - ${questKey} - ${questData[questKey].metadata.title}\n`;
             for (let taskKey in questData[questKey]) {
-                if(taskKey === "metadata") continue;
+                if (taskKey === "metadata") continue;
                 response += `    - ~${taskKey} - ${questData[questKey][taskKey].desc}~ [[COMPLETED](https://github.com/${repo.owner
                     }/${repo.repo}/issues/${userData.user_data.completed[questKey][taskKey].issueNum})]\n`;
             }

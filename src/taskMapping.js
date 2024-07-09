@@ -84,7 +84,7 @@ async function handleQ2T3(db, user, context, ossRepo, response, selectedIssue) {
 }
 
 async function handleQ2T4(db, user, context, ossRepo, response, selectedIssue) {
-    if (await isContributorMentionedInIssue(ossRepo, selectedIssue, context)) {
+    if (await utils.isContributorMentionedInIssue(ossRepo, selectedIssue, context)) {
         await completeTask(db, user, "Q2", "T4", context);
         return response.success;
     }
@@ -93,8 +93,8 @@ async function handleQ2T4(db, user, context, ossRepo, response, selectedIssue) {
 
 // Q3
 async function handleQ3T1(db, user, context, ossRepo, response, selectedIssue) {
-    const correctAnswer = "a";
-    if (context.payload.body.toLowerCase().includes(correctAnswer)) {
+    const correctAnswer = "c";
+    if (context.payload.comment.body.toLowerCase().includes(correctAnswer)) {
         await completeTask(db, user, "Q3", "T1", context);
         return response.success;
     }
