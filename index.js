@@ -58,7 +58,7 @@ export default (app) => {
             status = await db.createUser(command.argument);
             if (status) {
               response = responses.newUserResponse;
-              var user_document = await db.downloadUserData(user);
+              var user_document = await db.downloadUserData(command.argument);
               questFunctions.acceptQuest(context, user_document.user_data, "Q1");
               // update readme and data
               questFunctions.updateReadme(owner, repo, context, user_document.user_data); // TODO: same as below
