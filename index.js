@@ -21,18 +21,18 @@ export default (app) => {
   // issue command
   app.on("issues.opened", async (context) => {
     const user = context.payload.issue.user;
-    if(user.type === "Bot" || user.login.includes('[bot]')){
+    if (user.type === "Bot" || user.login.includes('[bot]')) {
       return;
     }
     const issueComment = context.issue({
       body: responses.newIssue,
     });
-    try{
+    try {
       context.octokit.issues.createComment(issueComment);
-    } catch(error){
+    } catch (error) {
       console.error("Error creating a new issue: ", error);
     }
-    
+
     return;
   });
 
@@ -42,7 +42,7 @@ export default (app) => {
     if (context.payload.comment.user.type === "Bot") {
       return;
     }
-    
+
     // check if / command
     const comment = context.payload.comment.body;
     if (comment.startsWith("/")) {
@@ -53,67 +53,50 @@ export default (app) => {
       // detect command
       if (command) {
         switch (command.action) {
-          case "accept":
-            // accept
-            status = await questFunctions.acceptQuest(
-              context,
-              db,
-              user,
-              command.argument
-            );
-            if (!status) {
-              response = responses.failedAccept;
-            }
-            break;
-          case "drop":
-            // drop
-            status = await questFunctions.removeQuest(db, user);
-            if (status) {
-              response = responses.taskAbandoned;
-            } else {
-              response =
-                "Failed to drop quest. You might not be currently on any quests.";
-            }
-            break;
           case "new_user":
             // create user
-
             status = await db.createUser(command.argument);
-            await questFunctions.acceptQuest(context, db, command.argument, "Q1");
             if (status) {
               response = responses.newUserResponse;
+              var user_document = await db.downloadUserData(user);
+              questFunctions.acceptQuest(context, user_document.user_data, "Q1");
+              // update readme and data
+              questFunctions.updateReadme(owner, repo, context, user_document.user_data); // TODO: same as below
+              await db.updateData(user_document); // TODO: maybe doesnt need to be synchronus?
             } else {
               response = "Failed to create new user, user already exists";
             }
             break;
-          case "reset":       
+          case "reset":
             // wipe user from database
             await db.wipeUser(user);
             // reset readme
             await questFunctions.resetReadme(owner, repo, context);
             await questFunctions.closeIssues(context);
             break;
-          case "display":
-
-            await questFunctions.updateReadme(command.argument, owner, repo, context, db);
-            break;
           default:
             // respond unknown command and avaialble commands
             response = responses.invalidCommand;
             break;
-      }
+        }
         if (response !== "") {
           const issueComment = context.issue({ body: response });
-          try{
+          try {
             await context.octokit.issues.createComment(issueComment);
-          } catch(error){
-            console.error("Error creating issue comment: ", error );
+          } catch (error) {
+            console.error("Error creating issue comment: ", error);
           }
-          
+
         }
       }
     } else {
-      questFunctions.validateTask(db, context, user);
+      try{
+        var user_document = await db.downloadUserData(user);
+        await questFunctions.validateTask(user_document.user_data, context, user);
+        db.updateData(user_document);
+      } catch{
+        console.log("user " + user + " commented but does not yet exist in database. /new_user <user>");
+      }
     }
   });
 
@@ -126,7 +109,7 @@ export default (app) => {
 
 // match and break down / command
 function parseCommand(comment) {
-  const regex = /^(\/(new_user|accept|drop|reset|display))(\s.*)?$/;
+  const regex = /^(\/(new_user|reset))(\s.*)?$/;
   const match = comment.match(regex);
   if (match) {
     const action = match[2];

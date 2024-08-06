@@ -1,5 +1,5 @@
 import fs from "fs";
-import { taskMapping } from "./taskMapping.js";
+import { taskMapping } from "./taskMapping.js"
 
 // Files from context of file accessing exported functions (from viewpoint of index.js) when using I/O functions
 const questFilePath = "./src/config/quest_config.json";
@@ -16,22 +16,21 @@ const ossRepo = quests.oss_repo;
 const mapRepoLink = quests.map_repo_link;
 
 // Will also start the tasks associated with quest
-async function acceptQuest(context, db, user, quest) {
+function acceptQuest(context, user_data, quest) {
     const { owner, repo } = context.repo();
     try {
         // Read in available qeusts and validate requested quest
         if (quest in quests) {
-            const user_data = await db.downloadUserData(user);
-            if (!user_data.user_data.accepted) {
-                user_data.user_data.accepted = {};
+            if (!user_data.accepted) {
+                user_data.accepted = {};
             }
             // if user has not accepted quest
-            if (!Object.keys(user_data.user_data.accepted).length) {
-                user_data.user_data.accepted[quest] = {};
+            if (!Object.keys(user_data.accepted).length) {
+                user_data.accepted[quest] = {};
                 // add list of tasks to user in database
                 for (const task in quests[quest]) {
                     if (task !== "metadata") {
-                        user_data.user_data.accepted[quest][task] = {
+                        user_data.accepted[quest][task] = {
                             completed: false,
                             attempts: 0,
                             timeStart: 0,
@@ -40,17 +39,14 @@ async function acceptQuest(context, db, user, quest) {
                         };
                     }
                     // track current progress
-                    user_data.user_data.current = {
+                    user_data.current = {
                         quest: quest,
                         task: "T1", // depending on how indexing works in validate task, may need to change to 0
                     };
-                    user_data.user_data.completion = 0;
+                    user_data.completion = 0;
                 }
-                await db.updateData(user_data);
 
-                await createQuestEnvironment(db, user, quest, "T1", context);
-                // update character stats
-                await updateReadme(user, owner, repo, context, db);
+                createQuestEnvironment(user_data, quest, "T1", context);
                 return true;
             } else {
                 return false;
@@ -64,62 +60,57 @@ async function acceptQuest(context, db, user, quest) {
     }
 }
 
-export async function completeTask(db, user, quest, task, context) {
+export async function completeTask(user_data, quest, task, context) {
     const { owner, repo } = context.repo();
     try {
         const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
-        const user_data = await db.downloadUserData(user);
 
         const points = quests[quest][task].points;
         const xp = quests[quest][task].xp;
 
-        if (
-            user_data.user_data.accepted &&
-            user_data.user_data.accepted[quest] &&
-            user_data.user_data.accepted[quest][task]
-        ) {
-            user_data.user_data.accepted[quest][task].completed = true;
-            user_data.user_data.accepted[quest][task].timeEnd = Date.now();
-            user_data.user_data.accepted[quest][task].issueNum = context.issue().issue_number;
+        // check user accepted quest and task
+        if (user_data.accepted && user_data.accepted[quest] && user_data.accepted[quest][task]) {
+            // change quest data to complete
+            user_data.accepted[quest][task].completed = true;
+            user_data.accepted[quest][task].timeEnd = Date.now();
+            user_data.accepted[quest][task].issueNum = context.issue().issue_number;
 
-            user_data.user_data.points += points;
-            user_data.user_data.xp += xp;
+            user_data.points += points;
+            user_data.xp += xp;
 
+            // get list of tasks from quest in json except for metadata
             const tasks = Object.keys(quests[quest]).filter((t) => t !== "metadata");
             const taskIndex = tasks.indexOf(task);
 
-            user_data.user_data.completion = (taskIndex + 1) / tasks.length;
-            user_data.user_data.completion =
-                Math.round(user_data.user_data.completion * 100) / 100; // two decimal places
+            user_data.completion = (taskIndex + 1) / tasks.length;
+            user_data.completion = Math.round(user_data.completion * 100) / 100; // two decimal places
 
+            // more tasks
             if (taskIndex !== -1 && taskIndex < tasks.length - 1) {
                 const nextTask = tasks[taskIndex + 1];
-                user_data.user_data.current.task = nextTask;
-                await db.updateData(user_data);
+                user_data.current.task = nextTask;
+                // last task
             } else {
-                user_data.user_data.current.task = null;
-                await db.updateData(user_data);
-                await completeQuest(db, user, quest, context);
+                user_data.current.task = null;
+                completeQuest(user_data, quest, context);
             }
 
-            await context.octokit.issues.update({
+            context.octokit.issues.update({
                 owner: owner,
                 repo: repo,
                 issue_number: context.issue().issue_number,
                 state: "closed",
             });
 
-            if (user_data.user_data.current && user_data.user_data.current.task != null) {
-                await createQuestEnvironment(
-                    db,
-                    user,
+            if (user_data.current && user_data.current.task != null) {
+                createQuestEnvironment(
+                    user_data,
                     quest,
-                    user_data.user_data.current.task,
+                    user_data.current.task,
                     context
                 );
             }
-
-            await updateReadme(user, owner, repo, context, db);
+            updateReadme(owner, repo, context, user_data);
             return true;
         }
         return false;
@@ -129,42 +120,34 @@ export async function completeTask(db, user, quest, task, context) {
     }
 }
 
-// completes quests and does nessessary DB operations 
-// TODO: instead of wiping quest, move to entire quest to completed
-async function completeQuest(db, user, quest, context) {
+function completeQuest(user_data, quest, context) {
     try {
-        const user_data = await db.downloadUserData(user);
-        // user has the requested quest accepted
-        if (user_data.user_data.accepted && user_data.user_data.accepted[quest]) {
-            const tasks_completed = Object.values(
-                user_data.user_data.accepted[quest]
-            ).every((task) => task.completed); // all tasks completed
+        // ASSUMES that user_data.accepted exsists (pre existing check in parent function)
+        // all tasks completed
+        const tasks_completed = Object.values(user_data.accepted[quest]).every((task) => task.completed);
 
-            // clear quest and task
-            if (tasks_completed) {
-                if (!user_data.user_data.completed) {
-                    user_data.user_data.completed = {};
-                }
-
-                // add quest to users completed list
-                user_data.user_data.completed[quest] = user_data.user_data.accepted[quest];
-
-                delete user_data.user_data.accepted;
-                delete user_data.user_data.current;
-
-                // update user data in DB
-                await db.updateData(user_data);
-
-                if (quest === "Q1") {
-                    await acceptQuest(context, db, user, "Q2");
-                }
-                if (quest === "Q2") {
-                    await acceptQuest(context, db, user, "Q3");
-                }
-
-
-                return true; // Quest successfully completed
+        // clear quest and task
+        if (tasks_completed) {
+            if (!user_data.completed) {
+                user_data.completed = {};
             }
+
+            // add quest to users completed list
+            user_data.completed[quest] = user_data.accepted[quest];
+
+            delete user_data.accepted;
+            delete user_data.current;
+
+            // hardcoded quest logic (its a small prototype 👀)
+            if (quest === "Q1") {
+                acceptQuest(context, user_data, "Q2");
+            }
+            if (quest === "Q2") {
+                acceptQuest(context, user_data, "Q3");
+            }
+
+
+            return true; // Quest successfully completed
         }
     } catch (error) {
         console.error("Error completing quest:", error);
@@ -172,12 +155,11 @@ async function completeQuest(db, user, quest, context) {
     return false; // Quest not completed
 }
 
-async function createQuestEnvironment(db, user, quest, task, context) {
+async function createQuestEnvironment(user_data, quest, task, context) {
     const { owner, repo } = context.repo();
     var response = questResponse;
     var title = quests;
     var flag = false;
-    var user_data = await db.downloadUserData(user); // check for if task is selected
     // most will be creating an issue with multiple choice
 
     try {
@@ -186,8 +168,7 @@ async function createQuestEnvironment(db, user, quest, task, context) {
             const questData = quests[quest];
             response = response[quest];
             if (questData[task]) {
-                user_data.user_data.accepted[quest][task].timeStart = Date.now()
-                await db.updateData(user_data);
+                user_data.accepted[quest][task].timeStart = Date.now()
                 response = response[task].accept;
                 title = questData[task].desc;
             }
@@ -201,7 +182,7 @@ async function createQuestEnvironment(db, user, quest, task, context) {
                 body: response,
             });
             // new issue for new task
-            await context.octokit.issues.create({
+            context.octokit.issues.create({
                 owner: owner,
                 repo: repo,
                 title: `❗ ${quest} ${task}: ` + title,
@@ -213,22 +194,42 @@ async function createQuestEnvironment(db, user, quest, task, context) {
     }
 }
 
-async function validateTask(db, context, user) {
+async function validateTask(user_data, context, user) {
     try {
-        var user_data = await db.downloadUserData(user);
-
-        const selectedIssue = user_data.user_data.selectedIssue;
-        const task = user_data.user_data.current.task;
-        const quest = user_data.user_data.current.quest;
+        // issue context
+        const selectedIssue = user_data.selectedIssue;
+        const task = user_data.current.task;
+        const quest = user_data.current.quest;
         const { owner, repo } = context.repo();
 
-        user_data.user_data.accepted[quest][task].attempts += 1;
-        await db.updateData(user_data);
+        // incriment attempt
+        user_data.accepted[quest][task].attempts += 1;
+        // streak
+        if (user_data.streakCount != null) {
+            // no failed attempt
+            if (user_data.accepted[quest][task].attempts <= 1) {
+                user_data.currentStreak += 1;
+                // check if streak is full
+                // TODO: remove hardcode
+                if (user_data.currentStreak > 2) {
+                    user_data.currentStreak = 0;
+                    user_data.streakCount += 1;
+                }
+            }
+            // failed, reset streak
+            else {
+                user_data.currentStreak = 0;
+            }
+        } else {
+            // no previous streak
+            user_data.streakCount = 0
+            user_data.currentStreak = 1;
+        }
 
-        const taskHandler = taskMapping[quest][task];
+        // validate current task
+        const taskHandler = taskMapping[quest][task]; // function mapped through dictionary
         var response = questResponse[quest][task];
-        response = await taskHandler(db, user, context, ossRepo, response, selectedIssue);
-
+        response = await taskHandler(user_data, user, context, ossRepo, response, selectedIssue);
         response += `\n\nReturn [Home](https://github.com/${owner}/${repo})`;
 
         var issueComment = context.issue({
@@ -240,41 +241,78 @@ async function validateTask(db, context, user) {
     }
 }
 
-async function generateSVG(user, owner, repo, context, db) {
+function generateSVG(owner, repo, context, user_data) {
     try {
+        const percentage = user_data.completion * 100;
+        const currentStreak = user_data && user_data.currentStreak ? user_data.currentStreak : 0;
+        const streakCount = user_data && user_data.streakCount ? user_data.streakCount : 0;
 
-        // user data
-        const userDocument = await db.downloadUserData(user);
-        const percentage = userDocument.user_data.completion * 100;
         const radius = 40;
-        const circumference = 2 * Math.PI * radius;
-        const offset = circumference * (1 - percentage / 100);
-        const numCompleted = userDocument.user_data && userDocument.user_data.completed
-            ? Object.keys(userDocument.user_data.completed).length
-            : 0;
-        const points = Number(userDocument.user_data.points);
-        const level = Math.ceil(Number(userDocument.user_data.xp) / 100);
-        const completedQuests = userDocument.user_data.completed &&
-            userDocument.user_data.completed !== undefined
-            ? Object.keys(userDocument.user_data.completed)
-            : ""
 
+        const rankCircumference = 2 * Math.PI * radius;
+        const rankOffset = rankCircumference * (1 - percentage / 100);
+        const streakCircumference = 2 * Math.PI * radius;
+        const streakOffset = rankCircumference * (1 - currentStreak / 3);
+
+        const numCompleted = user_data && user_data.completed
+            ? Object.keys(user_data.completed).length
+            : 0;
+        const points = Number(user_data.points);
+        const level = Math.ceil(Number(user_data.xp) / 100);
+
+        const badgeDescriptions = {
+            Q1: 'Explorer 🚀',
+            Q2: 'Builder 🏗️',
+            Q3: 'Contributor 🥇'
+        };
+
+        const completedQuests = user_data.completed &&
+            user_data.completed !== undefined
+            ? Object.keys(user_data.completed).filter(quest => {
+                const tasks = user_data.completed[quest];
+                return Object.values(tasks).every(task => task.completed);
+            })
+            : [];
+        const badgeCount = completedQuests.length;
+        
+        let formattedBadges = '';
+        let offset = 125; // vertical spacing between entries on svg
+        for (let i = 0; i < completedQuests.length; i++) {
+            const badge = completedQuests[i];
+            formattedBadges += `
+            <g transform="translate(0, ${offset})">
+                <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
+                    <text class="stat bold" y="12.5">  - ${badgeDescriptions[badge]}</text>
+                    <text class="stat bold" x="199.01" y="12.5" data-testid="prs"></text>
+                </g>
+            </g>
+            `;
+            offset += 25;
+        }
+
+        
         // SVG content
         const svgTemplate = fs.readFileSync(svgTemplatePath, 'utf-8')
-            .replace('${circumference}', circumference)
-            .replace('${offset}', offset)
-            .replace('${percentage}', percentage)
-            .replace('${numCompleted}', numCompleted)
-            .replace('${points}', points)
-            .replace('${level}', level)
-            .replace('${completedQuests}', completedQuests);
+            .replaceAll('${rankCircumference}', rankCircumference)
+            .replaceAll('${rankOffset}', rankOffset)
+            .replaceAll('${streakCircumference}', streakCircumference)
+            .replaceAll('${streakOffset}', streakOffset)
+            .replaceAll('${currentStreak}', currentStreak)
+            .replaceAll('${streakCount}', streakCount)
+            .replaceAll('${percentage}', percentage)
+            .replaceAll('${numCompleted}', numCompleted)
+            .replaceAll('${points}', points)
+            .replaceAll('${level}', level)
+            .replaceAll('${formattedBadges}', formattedBadges)
+            .replaceAll('${badgeCount}', badgeCount)
+            .replaceAll('${viewHeight}', 195 + (25 * badgeCount));
 
         // Generate a unique filename based on the current timestamp to cache bust github
         const timestamp = Date.now();
         const newFilename = `userCards/draft-${timestamp}.svg`;
 
-        // Write to the new file
-        await context.octokit.repos.createOrUpdateFileContents({
+        // non synchronus file update
+        context.octokit.repos.createOrUpdateFileContents({
             owner,
             repo,
             path: newFilename,
@@ -362,20 +400,19 @@ async function resetReadme(owner, repo, context) {
 }
 
 // Temp solution to map feature, avoiding github cache TTL 
-// TODO: null object bug here maybe?
-function getMapLink(userData, quest, task, completed) {
-    if (!userData || !userData.user_data) {
+function getMapLink(user_data, quest, task, completed) {
+    if (!user_data) {
         return `${mapRepoLink}/Q1.png`; // Return default map link if userData or accepted quests are not available
     }
 
     // if all quests completed
-    if (Object.keys(completed).length === 3) { // TODO: remove hard code, improve mess of a function
+    if (Object.keys(completed).length === 3) {
         return `${mapRepoLink}/F.png`;
     }
     if (quest === "") {
         // Check if the current quest is completed and find the next available quest
-        if (completed !== "" && userData.user_data.accepted != null) {
-            const accepted_quests = Object.keys(userData.user_data.accepted);
+        if (completed !== "" && user_data.accepted != null) {
+            const accepted_quests = Object.keys(user_data.accepted);
             const currentQuestIndex = accepted_quests.indexOf(completed);
             const nextQuest =
                 currentQuestIndex !== -1 && currentQuestIndex + 1 < accepted_quests.length
@@ -390,7 +427,7 @@ function getMapLink(userData, quest, task, completed) {
         return `${mapRepoLink}/Q1.png`; // Fall through if no next quest is available or no quest is currently set
     }
 
-    const acceptedTasks = userData.user_data.accepted[quest];
+    const acceptedTasks = user_data.accepted[quest];
     if (!acceptedTasks || Object.keys(acceptedTasks).length === 0) {
         return `${mapRepoLink}/${quest}.png`; // Quest image when no task is started
     }
@@ -409,28 +446,24 @@ function getMapLink(userData, quest, task, completed) {
     }
 }
 
-// TODO: NULL bug here
-async function displayQuests(user, db, context) {
+function displayQuests(user_data, context) {
     // Get user data 
     const repo = context.issue();
-    const userData = await db.downloadUserData(user);
     var task = "";
     var quest = "";
     var completed = "";
     var response = ``;
 
-    // TODO: add exception handling
-    if (userData.user_data.current !== undefined) {
-        task = userData.user_data.current.task;
-        quest = userData.user_data.current.quest;
+    if (user_data.current !== undefined) {
+        task = user_data.current.task;
+        quest = user_data.current.quest;
     }
 
-    if (userData.user_data.completed !== undefined) {
-        completed = userData.user_data.completed;
+    if (user_data.completed !== undefined) {
+        completed = user_data.completed;
     }
 
-    const mapLink = getMapLink(userData, quest, task, completed);
-
+    const mapLink = getMapLink(user_data, quest, task, completed);
 
     const questData = quests;
     // accepted/ current
@@ -440,11 +473,11 @@ async function displayQuests(user, db, context) {
             if (taskKey === "metadata") continue;
             // check if user has completed or not
             // if completed, strikeout but keep the issue number link
-            let isCompleted = userData.user_data.accepted[quest]?.[taskKey].completed ?? false;
+            let isCompleted = user_data.accepted[quest]?.[taskKey].completed ?? false;
 
             if (isCompleted) {
                 response += `    -  ~${taskKey} - ${questData[quest][taskKey].desc}~ [[COMPLETED](https://github.com/${repo.owner
-                    }/${repo.repo}/issues/${userData.user_data.accepted[quest][taskKey].issueNum})]\n`;
+                    }/${repo.repo}/issues/${user_data.accepted[quest][taskKey].issueNum})]\n`;
             } else if (task == taskKey) {
                 response += `    - ${taskKey} - ${questData[quest][taskKey].desc} [[Click here to start](https://github.com/${repo.owner
                     }/${repo.repo}/issues/${repo.issue_number + 1})]\n`; // WARNING, this is assuming user is responding on the last issue
@@ -463,7 +496,7 @@ async function displayQuests(user, db, context) {
             for (let taskKey in questData[questKey]) {
                 if (taskKey === "metadata") continue;
                 response += `    - ~${taskKey} - ${questData[questKey][taskKey].desc}~ [[COMPLETED](https://github.com/${repo.owner
-                    }/${repo.repo}/issues/${userData.user_data.completed[questKey][taskKey].issueNum})]\n`;
+                    }/${repo.repo}/issues/${user_data.completed[questKey][taskKey].issueNum})]\n`;
             }
         }
     }
@@ -472,11 +505,11 @@ async function displayQuests(user, db, context) {
     return response;
 }
 
-async function updateReadme(user, owner, repo, context, db) {
+async function updateReadme(owner, repo, context, user_data) {
     try {
         // Generate new svg and quest list (returns link to unique svg)
-        const newSVG = await generateSVG(user, owner, repo, context, db);
-        const questList = await displayQuests(user, db, context);
+        const newSVG = generateSVG(owner, repo, context, user_data);
+        const questList = displayQuests(user_data, context);
 
         // README
         const newContent = fs.readFileSync(progressReadmePath, 'utf8')
@@ -499,7 +532,7 @@ async function updateReadme(user, owner, repo, context, db) {
         }
 
         // Update the README file
-        await context.octokit.repos.createOrUpdateFileContents({
+        context.octokit.repos.createOrUpdateFileContents({
             owner,
             repo,
             path: "README.md",

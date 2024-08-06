@@ -65,8 +65,8 @@
     },
     "T1": {
       "desc": "Solve the issue (upload a file/make commit)",
-      "points": 25,
-      "xp": 25
+      "points": 50,
+      "xp": 50
     },
     "T2": {
       "desc": "Post in issue asking for a review",

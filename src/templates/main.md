@@ -4,6 +4,7 @@ OSSDoorway is a free, open-source platform designed to engage users in learning 
 
 OSSDoorway quests and activities are designed to be accessible and inclusive, ensuring that users from diverse backgrounds and skill levels can benefit from the platform. Join OSSDoorway today and start your journey towards becoming a proficient OSS contributor!
 
+**[Instructions here](https://github.com/caiton1/OSS-Doorway/blob/main/instructions.md)** 🗺️
 ---
 
 ### Setup
