@@ -2,6 +2,7 @@
 import { utils } from "./taskUtils.js";
 import { completeTask } from "./quest.js";
 
+// NOTE: due to how these functions are accessed, keep parameters uniform, even if not used
 // Q1
 async function handleQ1T1(user_data, user, context, ossRepo, response, selectedIssue) {
     const issueCount = await utils.getIssueCount(ossRepo);
@@ -120,7 +121,6 @@ async function handleQ3T3(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q3", "T3", context);
         const newPoints = user_data.streakCount * 100;
         user_data.points += newPoints;
-        // TODO: need to change message to reflect the new points
         return response.badge.replace('${points}', newPoints + 25); 
     }
     return response.error;

@@ -1,3 +1,5 @@
+// assisting funcitons mostly just abstracting github API for the task mapping file
+
 async function getIssueCount(repo) {
     try {
         const response = await fetch(`https://api.github.com/repos/${repo}/issues`);
@@ -16,6 +18,7 @@ async function getIssueCount(repo) {
     }
 }
 
+// assignee to github issue
 async function isFirstAssignee(repo, user, selectedIssue) {
     try {
         const response = await fetch(`https://api.github.com/repos/${repo}/issues/${selectedIssue}`);
@@ -38,7 +41,6 @@ async function isFirstAssignee(repo, user, selectedIssue) {
     }
 }
 
-
 async function getPRCount(repo) {
     try {
         const response = await fetch(`https://api.github.com/repos/${repo}/pulls`);
@@ -57,6 +59,7 @@ async function getPRCount(repo) {
     }
 }
 
+// first contributor that appears in the github API
 async function getFirstContributor(repo, context) {
     try {
         const installationID = context.payload.installation.id;
