@@ -10,7 +10,9 @@ async function handleQ1T1(user_data, user, context, ossRepo, response, selectedI
         completeTask(user_data, "Q1", "T1", context);
         return response.success;
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 
 }
 
@@ -20,7 +22,9 @@ async function handleQ1T2(user_data, user, context, ossRepo, response, selectedI
         completeTask(user_data, "Q1", "T2", context);
         return response.success;
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 async function handleQ1T3(user_data, user, context, ossRepo, response, selectedIssue) {
@@ -30,7 +34,9 @@ async function handleQ1T3(user_data, user, context, ossRepo, response, selectedI
         return response.success;
 
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 async function handleQ1T4(user_data, user, context, ossRepo, response, selectedIssue) {
@@ -39,7 +45,9 @@ async function handleQ1T4(user_data, user, context, ossRepo, response, selectedI
         completeTask(user_data, "Q1", "T4", context);
         return response.success;
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 async function handleQ1T5(user_data, user, context, ossRepo, response, selectedIssue) {
@@ -53,7 +61,9 @@ async function handleQ1T5(user_data, user, context, ossRepo, response, selectedI
         }
     }
 
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 // Q2
@@ -67,7 +77,9 @@ async function handleQ2T1(user_data, user, context, ossRepo, response, selectedI
         completeTask(user_data, "Q2", "T1", context);
         return response.success;
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 async function handleQ2T2(user_data, user, context, ossRepo, response, selectedIssue) {
@@ -75,7 +87,9 @@ async function handleQ2T2(user_data, user, context, ossRepo, response, selectedI
         completeTask(user_data, "Q2", "T2", context);
         return response.success;
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 async function handleQ2T3(user_data, user, context, ossRepo, response, selectedIssue) {
@@ -83,7 +97,9 @@ async function handleQ2T3(user_data, user, context, ossRepo, response, selectedI
         completeTask(user_data, "Q2", "T3", context);
         return response.success;
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 async function handleQ2T4(user_data, user, context, ossRepo, response, selectedIssue) {
@@ -95,7 +111,9 @@ async function handleQ2T4(user_data, user, context, ossRepo, response, selectedI
             return response.success;
         }
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 // Q3
@@ -105,7 +123,9 @@ async function handleQ3T1(user_data, user, context, ossRepo, response, selectedI
         completeTask(user_data, "Q3", "T1", context);
         return response.success;
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 async function handleQ3T2(user_data, user, context, ossRepo, response, selectedIssue) {
@@ -113,7 +133,9 @@ async function handleQ3T2(user_data, user, context, ossRepo, response, selectedI
         completeTask(user_data, "Q3", "T2", context);
         return response.success;
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 async function handleQ3T3(user_data, user, context, ossRepo, response, selectedIssue) {
@@ -123,7 +145,9 @@ async function handleQ3T3(user_data, user, context, ossRepo, response, selectedI
         user_data.points += newPoints;
         return response.badge.replace('${points}', newPoints + 25); 
     }
-    return response.error;
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
 }
 
 export const taskMapping = {

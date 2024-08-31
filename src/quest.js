@@ -438,7 +438,7 @@ function getMapLink(user_data, quest, task, completed) {
     const totalTasks = Object.keys(acceptedTasks).length;
 
     if (completedTasks === 0) {
-        return `${mapRepoLink}/${quest}.png`; // Quest initial map
+        return `${mapRepoLink}/${quest}T1.png`; // Quest initial map
     } else if (completedTasks === totalTasks) {
         return `${mapRepoLink}/${quest}F.png`; // Quest completed map
     } else {
