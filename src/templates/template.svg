@@ -1,7 +1,7 @@
 <svg
-        width="450"
-        height="195"
-        viewBox="0 0 450 195"
+        width="570"
+        height="${viewHeight}"
+        viewBox="0 0 570 ${viewHeight}"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         role="img"
@@ -51,7 +51,7 @@
                 display: none;
             }
     
-            .rank-circle-rim {
+            .circle-rim {
                 stroke: #2f80ed;
                 fill: none;
                 stroke-width: 6;
@@ -59,8 +59,8 @@
             }
             .rank-circle {
                 stroke: #2f80ed;
-                stroke-dasharray: ${circumference};
-                stroke-dashoffset: ${offset};
+                stroke-dasharray: ${rankCircumference};
+                stroke-dashoffset: ${rankOffset};
                 fill: none;
                 stroke-width: 6;
                 stroke-linecap: round;
@@ -72,10 +72,31 @@
             
             @keyframes rankAnimation {
                 from {
-                    stroke-dashoffset: ${circumference};
+                    stroke-dashoffset: ${rankCircumference};
                 }
                 to {
-                    stroke-dashoffset: ${offset};
+                    stroke-dashoffset: ${rankOffset};
+                }
+            }
+            .streak-circle {
+                stroke: #2f80ed;
+                stroke-dasharray: ${streakCircumference};
+                stroke-dashoffset: ${streakOffset};
+                fill: none;
+                stroke-width: 6;
+                stroke-linecap: round;
+                opacity: 0.8;
+                transform-origin: -10px 8px;
+                transform: rotate(-90deg);
+                animation: streakAnimation 1s forwards ease-in-out;
+            }
+            
+            @keyframes streakAnimation {
+                from {
+                    stroke-dashoffset: ${streakCircumference};
+                }
+                to {
+                    stroke-dashoffset: ${streakOffset};
                 }
             }
         
@@ -105,7 +126,7 @@
             rx="4.5"
             height="99%"
             stroke="#e4e2e2"
-            width="449"
+            width="569"
             fill="#21262d"
             stroke-opacity="1"
         />
@@ -117,14 +138,25 @@
         </g>
     
         <g data-testid="main-card-body" transform="translate(0, 55)">
+
             <g data-testid="rank-circle" transform="translate(365, 30)">
-                <circle class="rank-circle-rim" cx="-10" cy="8" r="40" />
+                <circle class="circle-rim" cx="-10" cy="8" r="40" />
                 <circle class="rank-circle" cx="-10" cy="8" r="40" />
                 <g class="rank-text">
                     <text x="-5" y="3" alignment-baseline="central" dominant-baseline="central" text-anchor="middle" data-testid="level-rank-icon">${percentage}%</text>
                     <text x="-2" y="-55" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" class="stat bold" fill="#2f80ed">User's Task Progress 🕹️</text>
                 </g>
             </g>
+
+            <g data-testid="streak-circle" transform="translate(500, 30)">
+                <circle class="circle-rim" cx="-10" cy="8" r="40" />
+                <circle class="streak-circle" cx="-10" cy="8" r="40" />
+                <g class="rank-text">
+                    <text x="-5" y="3" alignment-baseline="central" dominant-baseline="central" text-anchor="middle" data-testid="level-rank-icon">${currentStreak}/3</text>
+                    <text x="-2" y="-55" alignment-baseline="middle" dominant-baseline="middle" text-anchor="middle" class="stat bold" fill="#2f80ed">Task Streak 🔥</text>
+                </g>
+            </g>
+
     
             <svg x="0" y="0">
                 <g transform="translate(0, 0)">
@@ -145,12 +177,19 @@
                         <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${level}</text>
                     </g>
                 </g>
-                <g transform="translate(0, 75)">
+                    <g transform="translate(0, 75)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
-                        <text class="stat bold" y="12.5">Badges (WIP) 🚧:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${completedQuests}</text>
+                        <text class="stat bold" y="12.5">Streaks:</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${streakCount}</text>
                     </g>
                 </g>
+                <g transform="translate(0, 100)">
+                    <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
+                        <text class="stat bold" y="12.5">Badges:</text>
+                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${badgeCount}</text>
+                    </g>
+                </g>
+                ${formattedBadges}
             </svg>
         </g>
     </svg>
