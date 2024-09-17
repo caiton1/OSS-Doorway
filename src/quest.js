@@ -15,7 +15,7 @@ const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
 const ossRepo = quests.oss_repo;
 const mapRepoLink = quests.map_repo_link;
 
-// Will also start the tasks associated with quest
+// Will also start the first task associated with quest
 function acceptQuest(context, user_data, quest) {
     const { owner, repo } = context.repo();
     try {
@@ -155,6 +155,7 @@ function completeQuest(user_data, quest, context) {
     return false; // Quest not completed
 }
 
+// geenrates "quest" by generating a github issues with the quest details
 async function createQuestEnvironment(user_data, quest, task, context) {
     const { owner, repo } = context.repo();
     var response = questResponse;
@@ -194,6 +195,7 @@ async function createQuestEnvironment(user_data, quest, task, context) {
     }
 }
 
+// validates task by using object oriented function mapping from the taskMapping.js file
 async function validateTask(user_data, context, user) {
     try {
         // issue context
@@ -243,6 +245,7 @@ async function validateTask(user_data, context, user) {
 
 function generateSVG(owner, repo, context, user_data) {
     try {
+        // math for svg dials and numbers (The user banner that will appear on the front page)
         const percentage = user_data.completion * 100;
         const currentStreak = user_data && user_data.currentStreak ? user_data.currentStreak : 0;
         const streakCount = user_data && user_data.streakCount ? user_data.streakCount : 0;
@@ -265,7 +268,8 @@ function generateSVG(owner, repo, context, user_data) {
             Q2: 'Builder 🏗️',
             Q3: 'Contributor 🥇'
         };
-
+        
+        // List of completed quests (Q1, Q2, Q3) to later display and use for logic
         const completedQuests = user_data.completed &&
             user_data.completed !== undefined
             ? Object.keys(user_data.completed).filter(quest => {
