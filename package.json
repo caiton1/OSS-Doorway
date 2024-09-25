@@ -13,9 +13,11 @@
   ],
   "scripts": {
     "start": "probot run ./index.js",
-    "test": "node --test"
+    "test": "node --test",
+    "repoSetup": "node setup.js"
   },
   "dependencies": {
+    "@octokit/rest": "^21.0.2",
     "dotenv": "^16.4.5",
     "mongodb": "^6.5.0",
     "probot": "^13.0.1"

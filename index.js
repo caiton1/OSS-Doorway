@@ -2,7 +2,7 @@
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Probot} app
  */
-import { questFunctions } from "./src/quest.js";
+import { gameFunction } from "./src/gamification.js";
 import { MongoDB } from "./src/database.js";
 import fs from "fs";
 const responseFilePath = "./src/config/response.json";
@@ -13,24 +13,19 @@ const responses = JSON.parse(
 const db = new MongoDB();
 await db.connect();
 export default (app) => {
-  // Your code here
-  app.log.info("Yay, the app was loaded!");
-
-  // webhooks: https://github.com/octokit/webhooks.js/#webhook-events
-
-  // issue command
+  // TODO: update to reflect new command structure
   app.on("issues.opened", async (context) => {
+    if (context.payload.issue.user.type === "Bot") return;
+
     const user = context.payload.issue.user;
-    if (user.type === "Bot" || user.login.includes('[bot]')) {
-      return;
-    }
     const issueComment = context.issue({
       body: responses.newIssue,
     });
+
     try {
       context.octokit.issues.createComment(issueComment);
     } catch (error) {
-      console.error("Error creating a new issue: ", error);
+      console.error("Error commenting: ", error);
     }
 
     return;
@@ -38,82 +33,120 @@ export default (app) => {
 
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
+    // in orgs, the org is the "owner" of the repo
     const { owner, repo } = context.repo();
-    if (context.payload.comment.user.type === "Bot") {
-      return;
-    }
-
-    // check if / command
     const comment = context.payload.comment.body;
-    if (comment.startsWith("/")) {
-      const command = parseCommand(comment);
-      var response = "";
-      var status = false;
 
-      // detect command
-      if (command) {
-        switch (command.action) {
-          case "new_user":
-            // create user
-            status = await db.createUser(command.argument);
-            if (status) {
-              response = responses.newUserResponse;
-              var user_document = await db.downloadUserData(command.argument);
-              questFunctions.acceptQuest(context, user_document.user_data, "Q1");
-              // update readme and data
-              questFunctions.updateReadme(owner, repo, context, user_document.user_data); // TODO: same as below
-              await db.updateData(user_document); // TODO: maybe doesnt need to be synchronus?
-            } else {
-              response = "Failed to create new user, user already exists";
-            }
-            break;
-          case "reset":
-            // wipe user from database
-            await db.wipeUser(user);
-            // reset readme
-            await questFunctions.resetReadme(owner, repo, context);
-            await questFunctions.closeIssues(context);
-            break;
-          default:
-            // respond unknown command and avaialble commands
-            response = responses.invalidCommand;
-            break;
-        }
-        if (response !== "") {
-          const issueComment = context.issue({ body: response });
-          try {
-            await context.octokit.issues.createComment(issueComment);
-          } catch (error) {
-            console.error("Error creating issue comment: ", error);
-          }
-        }
+    // admin commands
+    if (comment.startsWith("/")) {
+      if (await isAdmin(context, owner, user) || context.payload.comment.user.type === "Bot") {
+        await parseCommand(context, owner, comment);
+      } else{
+        issueComment(context, "You need to be a repo or org owner to run / commands.");
       }
-    } else {
-      try{
+    } 
+    // quest response
+    else {
+      if (context.payload.comment.user.type === "Bot") return;
+      try {
         var user_document = await db.downloadUserData(user);
-        await questFunctions.validateTask(user_document.user_data, context, user);
+        await gameFunction.validateTask(user_document.user_data, context, user);
         db.updateData(user_document);
-      } catch{
-        console.log("user " + user + " commented but does not yet exist in database. /new_user <user>");
+      } catch {
+        msg = issueComment(
+          context,
+          "user " +
+            user +
+            " commented but does not yet exist in database. /new_user <user>"
+        );
       }
     }
   });
-
 };
 
 // match and break down / command
-function parseCommand(comment) {
-  const regex = /^(\/(new_user|reset))(\s.*)?$/;
+async function parseCommand(context, org, comment) {
+  const regex = /^(\/(new_user|reset_user|reset_repo|create_repos))(\s+(.+))?$/;
   const match = comment.match(regex);
   if (match) {
-    const action = match[2];
-    var argument = match[3];
-    if (argument) {
-      argument = argument.trim();
+    const command = match[2];
+    var argument = match[4];
+
+    var response = "";
+    var status = false;
+
+    // detect command
+    if (command) {
+      switch (command) {
+        case "create_repos":
+          const users = argument.split(',').map(user => user.trim());
+          response = await gameFunction.createRepos(context, org, users, db); 
+          break;
+        case "new_user":
+          const { owner, repo } = context.repo();
+          // create user
+          status = await db.createUser(argument);
+          if (status) {
+            response = responses.newUserResponse;
+            var user_document = await db.downloadUserData(argument);
+            gameFunction.acceptQuest(context, user_document.user_data, "Q1");
+            // update readme and data
+            gameFunction.updateReadme(
+              owner,
+              repo,
+              context,
+              user_document.user_data
+            ); // TODO: same as below
+            await db.updateData(user_document);
+          } else {
+            response = "Failed to create new user, user already exists";
+          }
+          break;
+        case "reset_user":
+          // wipe user from database
+          await db.wipeUser(argument);
+          break;
+        case "reset_repo":
+          await gameFunction.resetReadme(org, argument, context);
+          await gameFunction.closeIssues(context);
+          break;
+        default:
+          response = responses.invalidCommand;
+          break;
+      }
+
+      // feedback
+      if (response !== "") {
+        issueComment(context, response);
+      }
     }
-    return { action, argument };
+  }else{
+    issueComment(context, responses.invalidCommand);
   }
-  const action = "";
-  var argument = "";
-  return { action, argument };
+}
+
+async function issueComment(context, msg) {
+  const issueComment = context.issue({ body: msg });
+  try {
+    await context.octokit.issues.createComment(issueComment);
+  } catch (error) {
+    console.error("Error creating issue comment: ", error);
+  }
+}
+
+async function isAdmin(context, org, username) {
+  try {
+    const owner_list = await context.octokit.orgs.listMembers({
+      org,
+      role: "owner",
+    });
+    const owners = owner_list.data.map(user => user.login)
+    return owners.includes(username);
+
+  } catch (error) {
+    context.log.error(error);
+    throw new Error(
+      "Failed to check if user is the owner of the organization."
+    );
+  }
 }

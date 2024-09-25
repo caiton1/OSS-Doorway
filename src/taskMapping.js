@@ -1,6 +1,6 @@
 // import utils for tasks
 import { utils } from "./taskUtils.js";
-import { completeTask } from "./quest.js";
+import { completeTask } from "./gamification.js";
 
 // NOTE: due to how these functions are accessed, keep parameters uniform, even if not used
 // Q1
@@ -150,6 +150,7 @@ async function handleQ3T3(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
+// export quest functions as dictionary
 export const taskMapping = {
     Q1: {
         T1: handleQ1T1,
