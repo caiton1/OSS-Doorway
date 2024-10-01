@@ -82,19 +82,47 @@ export class MongoDB {
 
   async downloadUserData(user) {
     try {
-      const userDocument = await this.collection.findOne({ _id: user });
-      return userDocument;
+      // Fetch all points sorted in descending order
+      const points = await this.collection
+        .find({}, { projection: { '_id': 0, 'user_data.points': 1 } })
+        .toArray();
+      
+      // Map points array to just points values, handling undefined user_data or points
+      const sortedPoints = points
+        .map(doc => (doc.user_data && doc.user_data.points) || 0) // Fallback to 0 if undefined
+        .sort((a, b) => b - a); // Sort in descending order
+    
+      // Get the specific user
+      const userDoc = await this.collection.findOne({ _id: user });
+      const userScore = userDoc && userDoc.user_data ? userDoc.user_data.points : null;
+    
+      if (userDoc) {
+        // Find the user's position in the sorted array
+        const userPosition = sortedPoints.indexOf(userScore);
+        const nextUserScore = userPosition > 0 ? sortedPoints[userPosition - 1] : null; // Previous score in sorted array
+        const maxUserScore = sortedPoints[0]; // Highest score
+    
+        // Add additional properties to the userDoc
+        userDoc.userPosition = userPosition + 1; // Adjust for 1-based index
+        userDoc.nextUserScore = nextUserScore;
+        userDoc.maxUserScore = maxUserScore;
+      }
+    
+      return userDoc; // Return the user document with additional fields
     } catch (error) {
       console.error("Error downloading user data:", error);
     }
   }
+  
+  
+
   async userExists(userName) {
     try {
       const userDocument = await this.collection.findOne({ _id: userName });
       return userDocument !== null;
     } catch (error) {
       console.error("Error checking if user exists:", error);
-      return false; 
+      return false;
     }
   }
 }

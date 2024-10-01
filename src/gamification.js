@@ -64,7 +64,7 @@ function acceptQuest(context, user_data, quest) {
   }
 }
 
-export async function completeTask(user_data, quest, task, context) {
+export async function completeTask(user_data, quest, task, context, db) {
   const { owner, repo } = context.repo();
   try {
     const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
@@ -118,7 +118,11 @@ export async function completeTask(user_data, quest, task, context) {
           context
         );
       }
-      updateReadme(owner, repo, context, user_data);
+      
+
+      db.updateData(user_data); // refresh points
+
+      await updateReadme(owner, repo, context, user_data, db);
       return true;
     }
     return false;
@@ -204,7 +208,7 @@ async function createQuestEnvironment(user_data, quest, task, context) {
 }
 
 // validates task by using object oriented function mapping from the taskMapping.js file
-async function validateTask(user_data, context, user) {
+async function validateTask(user_data, context, user, db) {
   try {
     // issue context
     const selectedIssue = user_data.selectedIssue;
@@ -245,7 +249,8 @@ async function validateTask(user_data, context, user) {
       context,
       ossRepo,
       response,
-      selectedIssue
+      selectedIssue,
+      db
     );
     response += `\n\nReturn [Home](https://github.com/${owner}/${repo})`;
 
@@ -262,9 +267,13 @@ async function validateTask(user_data, context, user) {
 /* ----- FRONT END (ish) ----- */
 /////////////////////////////////
 
-function generateSVG(owner, repo, context, user_data) {
+async function generateSVG(owner, repo, context, user_data, db) {
   try {
     // math for svg dials and numbers (The user banner that will appear on the front page)
+    const user_score = await db.downloadUserData(repo);
+    const currentPos = user_score && user_score.userPosition ? user_score.userPosition : -1;
+    
+
     const percentage = user_data.completion * 100;
     const currentStreak =
       user_data && user_data.currentStreak ? user_data.currentStreak : 0;
@@ -302,7 +311,7 @@ function generateSVG(owner, repo, context, user_data) {
     const badgeCount = completedQuests.length;
 
     let formattedBadges = "";
-    let offset = 125; // vertical spacing between entries on svg
+    let offset = 150; // vertical spacing between entries on svg TODO: not hardcode
     for (let i = 0; i < completedQuests.length; i++) {
       const badge = completedQuests[i];
       formattedBadges += `
@@ -331,7 +340,8 @@ function generateSVG(owner, repo, context, user_data) {
       .replaceAll("${level}", level)
       .replaceAll("${formattedBadges}", formattedBadges)
       .replaceAll("${badgeCount}", badgeCount)
-      .replaceAll("${viewHeight}", 195 + 25 * badgeCount);
+      .replaceAll("${viewHeight}", 220 + 25 * badgeCount)
+      .replaceAll("${currentPosition}", currentPos);
 
     // Generate a unique filename based on the current timestamp to cache bust github
     const timestamp = Date.now();
@@ -468,10 +478,10 @@ function displayQuests(user_data, context) {
   return response;
 }
 
-async function updateReadme(owner, repo, context, user_data) {
+async function updateReadme(owner, repo, context, user_data, db) {
   try {
     // Generate new svg and quest list (returns link to unique svg)
-    const newSVG = generateSVG(owner, repo, context, user_data);
+    const newSVG = await generateSVG(owner, repo, context, user_data, db);
     const questList = displayQuests(user_data, context);
 
     // README

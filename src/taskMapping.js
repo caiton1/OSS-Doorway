@@ -4,10 +4,10 @@ import { completeTask } from "./gamification.js";
 
 // NOTE: due to how these functions are accessed, keep parameters uniform, even if not used
 // Q1
-async function handleQ1T1(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ1T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const issueCount = await utils.getIssueCount(ossRepo);
     if (issueCount !== null && context.payload.comment.body == issueCount) {
-        completeTask(user_data, "Q1", "T1", context);
+        completeTask(user_data, "Q1", "T1", context, db);
         return response.success;
     }
     response = response.error;
@@ -16,10 +16,10 @@ async function handleQ1T1(user_data, user, context, ossRepo, response, selectedI
 
 }
 
-async function handleQ1T2(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ1T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const PRCount = await utils.getPRCount(ossRepo);
     if (PRCount !== null && context.payload.comment.body == PRCount) {
-        completeTask(user_data, "Q1", "T2", context);
+        completeTask(user_data, "Q1", "T2", context, db);
         return response.success;
     }
     response = response.error;
@@ -27,10 +27,10 @@ async function handleQ1T2(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
-async function handleQ1T3(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ1T3(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswer = "c";
     if (context.payload.comment.body.toLowerCase().includes(correctAnswer)) {
-        completeTask(user_data, "Q1", "T3", context);
+        completeTask(user_data, "Q1", "T3", context, db);
         return response.success;
 
     }
@@ -39,10 +39,10 @@ async function handleQ1T3(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
-async function handleQ1T4(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ1T4(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswer = "d";
     if (context.payload.comment.body.toLowerCase().includes(correctAnswer)) {
-        completeTask(user_data, "Q1", "T4", context);
+        completeTask(user_data, "Q1", "T4", context, db);
         return response.success;
     }
     response = response.error;
@@ -50,10 +50,10 @@ async function handleQ1T4(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
-async function handleQ1T5(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ1T5(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const contributorCount = await utils.countContributors(ossRepo, context);
     if (context.payload.comment.body == contributorCount) {
-        await completeTask(user_data, "Q1", "T5", context);
+        await completeTask(user_data, "Q1", "T5", context, db);
         if (Object.keys(user_data.completed["Q1"]).every(task => user_data.completed["Q1"][task].attempts === 1)) {
             return response.badge;
         } else {
@@ -67,14 +67,14 @@ async function handleQ1T5(user_data, user, context, ossRepo, response, selectedI
 }
 
 // Q2
-async function handleQ2T1(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ2T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const issueComment = context.payload.comment.body;
     const openIssues = await utils.openIssues(ossRepo, context);
     const firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
 
     if (openIssues.includes(Number(issueComment)) && firstAssignee) {
         user_data.selectedIssue = Number(issueComment);
-        completeTask(user_data, "Q2", "T1", context);
+        completeTask(user_data, "Q2", "T1", context, db);
         return response.success;
     }
     response = response.error;
@@ -82,9 +82,9 @@ async function handleQ2T1(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
-async function handleQ2T2(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ2T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
     if (await utils.checkAssignee(ossRepo, selectedIssue, user, context)) {
-        completeTask(user_data, "Q2", "T2", context);
+        completeTask(user_data, "Q2", "T2", context, db);
         return response.success;
     }
     response = response.error;
@@ -92,9 +92,9 @@ async function handleQ2T2(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
-async function handleQ2T3(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ2T3(user_data, user, context, ossRepo, response, selectedIssue, db) {
     if (await utils.userCommentedInIssue(ossRepo, selectedIssue, user, context)) {
-        completeTask(user_data, "Q2", "T3", context);
+        completeTask(user_data, "Q2", "T3", context, db);
         return response.success;
     }
     response = response.error;
@@ -102,9 +102,9 @@ async function handleQ2T3(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
-async function handleQ2T4(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ2T4(user_data, user, context, ossRepo, response, selectedIssue, db) {
     if (await utils.isContributorMentionedInIssue(ossRepo, selectedIssue, context)) {
-        await completeTask(user_data, "Q2", "T4", context);
+        await completeTask(user_data, "Q2", "T4", context, db);
         if (Object.keys(user_data.completed["Q2"]).every(task => user_data.completed["Q2"][task].attempts === 1)) {
             return response.badge;
         } else {
@@ -117,10 +117,10 @@ async function handleQ2T4(user_data, user, context, ossRepo, response, selectedI
 }
 
 // Q3
-async function handleQ3T1(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ3T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswer = "c";
     if (context.payload.comment.body.toLowerCase().includes(correctAnswer)) {
-        completeTask(user_data, "Q3", "T1", context);
+        completeTask(user_data, "Q3", "T1", context, db);
         return response.success;
     }
     response = response.error;
@@ -128,9 +128,9 @@ async function handleQ3T1(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
-async function handleQ3T2(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ3T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
     if (await utils.userPRAndComment(ossRepo, user, context)) {
-        completeTask(user_data, "Q3", "T2", context);
+        completeTask(user_data, "Q3", "T2", context, db);
         return response.success;
     }
     response = response.error;
@@ -138,9 +138,9 @@ async function handleQ3T2(user_data, user, context, ossRepo, response, selectedI
     return response;
 }
 
-async function handleQ3T3(user_data, user, context, ossRepo, response, selectedIssue) {
+async function handleQ3T3(user_data, user, context, ossRepo, response, selectedIssue, db) {
     if (await utils.issueClosed(ossRepo, selectedIssue, context)) {
-        await completeTask(user_data, "Q3", "T3", context);
+        await completeTask(user_data, "Q3", "T3", context, db);
         const newPoints = user_data.streakCount * 100;
         user_data.points += newPoints;
         return response.badge.replace('${points}', newPoints + 25); 

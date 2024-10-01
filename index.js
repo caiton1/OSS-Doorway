@@ -50,7 +50,7 @@ export default (app) => {
       if (context.payload.comment.user.type === "Bot") return;
       try {
         var user_document = await db.downloadUserData(user);
-        await gameFunction.validateTask(user_document.user_data, context, user);
+        await gameFunction.validateTask(user_document.user_data, context, user, db);
         db.updateData(user_document);
       } catch {
         msg = issueComment(
@@ -106,7 +106,7 @@ async function parseCommand(context, org, comment) {
           // wipe user from database
           await db.wipeUser(argument);
           break;
-        case "reset_repo":
+        case "reset_repo": // TODO: did not delete
           await gameFunction.resetReadme(org, argument, context);
           await gameFunction.closeIssues(context);
           break;
