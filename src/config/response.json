@@ -1,10 +1,17 @@
 {
   "responses": {
-    "newIssue": "You have opened a new issue, available commands are:\n/create_repos <list of users (u1, u2, u3)>, sets up the environment for a list of github users and invites them\n/new_user (user), creates new user in database\n/reset_user (user), resets user in database\n/reset_repo (repo/user), resets the readme of the specified repo",
-    "invalidCommand": "Invalid command! Available commands: \n/create_repos <list of users (u1, u2, u3)>, sets up the environment for a list of github users and invites them\n/new_user (user), creates new user in database\n/reset_user (user), resets user in database\n/reset_repo (repo/user), resets the readme of the specified repo",
+    "newIssue": "You have opened a new issue, available commands are:\n/create_repos <list of users (u1, u2, u3)>, sets up the environment for a list of github users and invites them\n/new_user (user), creates new user in database\n/del_user (user), deletes user in database\n/reset_repo (repo/user), resets the readme of the specified repo\n/del_repo (repo), deletes user's repo",
+    "invalidCommand": "Invalid command! Available commands: \n/create_repos <list of users (u1, u2, u3)>, sets up the environment for a list of github users and invites them\n/new_user (user), creates new user in database\n/del_user (user), deletes user in database\n/reset_repo (repo/user), resets the readme of the specified repo\n/del_repo (repo), deletes user's repo",
     "failedAccept": "Quest failed to accept, please ensure you are not already on a quest.",
     "taskAbandoned": "### Task Abandoned\n\n🛑 **Whoa, Adventurer!** 🛑\n\nIt seems you've decided to abandon your current task. \n\nWhile every quest offers its rewards and challenges, remember that true growth often lies just beyond the trials we choose to face.\n\nIf this task no longer aligns with your journey or if you seek a different challenge, that's perfectly okay. \n\nExploration is not just about the paths we complete but also about understanding which directions resonate most with our goals and interests.\n\nShould you wish to embark on a new adventure, the realm of GitHub awaits with open arms and endless possibilities. When ready, a new quest is automatically created in the **issues tab**, and let's turn the page to your next chapter in this grand adventure.\n\nRemember, the journey of a thousand lines of code begins with a single command. Your next quest is just a command away!",
     "newUserResponse": "user created."
+  },
+  "Q0": {
+    "T1": {
+      "accept": "Q0T1 \nA) show score, not map\nB) show map, not score\nC) show both\nD) show neither",
+      "error": "Q0T1 answer incorrect, please input a valid multi choice answer, only a single letter",
+      "success": "Q0T1 answer correct"
+    }
   },
   "Q1": {
     "display": "**Choose Your Next Adventure 🚀**\n\nEmbark on a journey through the GitHub realm, where each task will uncover the secrets of collaborative development. \n\nHere are the exciting challenges that await you:\n\n- 🕵️ Task 1 - Find the Issue Tracker\n  Delve into the heart of collaboration and feedback.\n\n- 🔄 Task 2 - Find the Pull-Request Menu\n  Discover the pathway to contributing your unique changes.\n\n- 🍴 Task 3 - Find the Fork Button\n  Prepare to clone the repository's riches for your exploration.\n\n- 📖 Task 4 - Find the README File\n  Unravel the scroll that tells the tale of the project.\n\n- 👥 Task 5 - Find the Contributors\n  Meet the heroes behind the curtain of this grand adventure.\n\nYour next task is awaiting you in the issues tab.\n\nYour adventure awaits! 🌟",

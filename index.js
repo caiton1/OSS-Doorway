@@ -53,7 +53,7 @@ export default (app) => {
         await gameFunction.validateTask(user_document.user_data, context, user, db);
         db.updateData(user_document);
       } catch {
-        msg = issueComment(
+        issueComment(
           context,
           "user " +
             user +
@@ -66,7 +66,7 @@ export default (app) => {
 
 // match and break down / command
 async function parseCommand(context, org, comment) {
-  const regex = /^(\/(new_user|reset_user|reset_repo|create_repos))(\s+(.+))?$/;
+  const regex = /^(\/(new_user|del_user|del_repo|reset_repo|create_repos))(\s+(.+))?$/;
   const match = comment.match(regex);
   if (match) {
     const command = match[2];
@@ -77,19 +77,19 @@ async function parseCommand(context, org, comment) {
 
     // detect command
     if (command) {
+      const { owner, repo } = context.repo();
       switch (command) {
         case "create_repos":
           const users = argument.split(',').map(user => user.trim());
           response = await gameFunction.createRepos(context, org, users, db); 
           break;
         case "new_user":
-          const { owner, repo } = context.repo();
           // create user
           status = await db.createUser(argument);
           if (status) {
             response = responses.newUserResponse;
             var user_document = await db.downloadUserData(argument);
-            gameFunction.acceptQuest(context, user_document.user_data, "Q1");
+            gameFunction.acceptQuest(context, user_document.user_data, "Q0");
             // update readme and data
             gameFunction.updateReadme(
               owner,
@@ -102,13 +102,25 @@ async function parseCommand(context, org, comment) {
             response = "Failed to create new user, user already exists";
           }
           break;
-        case "reset_user":
+        case "del_user":
           // wipe user from database
           await db.wipeUser(argument);
+          response = "user wipe complete";
           break;
-        case "reset_repo": // TODO: did not delete
-          await gameFunction.resetReadme(org, argument, context);
-          await gameFunction.closeIssues(context);
+        case "del_repo":
+          // delete repo
+          response = await gameFunction.deleteRepo(context, owner, argument);
+          break;
+        case "reset_repo": // does not delete
+          try {
+            await gameFunction.resetReadme(org, argument, context);
+            await gameFunction.closeIssues(context);
+            response = "repo reset successful";
+          } catch {
+            response = "repo reset failed";
+          }
+          
+          
           break;
         default:
           response = responses.invalidCommand;

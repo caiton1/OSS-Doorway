@@ -3,6 +3,47 @@ import { utils } from "./taskUtils.js";
 import { completeTask } from "./gamification.js";
 
 // NOTE: due to how these functions are accessed, keep parameters uniform, even if not used
+
+// Q0
+async function handleQ0T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
+    const user_response = context.payload.comment.body.toLowerCase();
+    // WARNING: assumes that this quest and task will always be run first
+    // will overwrite, otherwise do null check
+    user_data.display_preference = [];
+
+    // score
+    if(user_response.includes("a")){
+        // update user json preferences
+        user_data.display_preference.push("score");
+
+        completeTask(user_data, "Q0", "T1", context, db);
+        return response.success;
+    }
+    // map
+    else if(user_response.includes("b")){
+        user_data.display_preference.push("map");
+        completeTask(user_data, "Q0", "T1", context, db);
+        return response.success;
+    }
+    // both
+    else if(user_response.includes("c")){
+        user_data.display_preference.push("score");
+        user_data.display_preference.push("map");
+        completeTask(user_data, "Q0", "T1", context, db);
+        return response.success;
+    }
+    // neither
+    else if(user_response.includes("d")){
+        // do nothing, complete task
+        completeTask(user_data, "Q0", "T1", context, db);
+        return response.success;
+    }
+    // fail
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return response;
+
+}
 // Q1
 async function handleQ1T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const issueCount = await utils.getIssueCount(ossRepo);
@@ -152,6 +193,9 @@ async function handleQ3T3(user_data, user, context, ossRepo, response, selectedI
 
 // export quest functions as dictionary
 export const taskMapping = {
+    Q0: {
+        T1: handleQ0T1
+    },
     Q1: {
         T1: handleQ1T1,
         T2: handleQ1T2,

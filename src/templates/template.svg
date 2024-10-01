@@ -166,35 +166,19 @@
                     </g>
                 </g>
                 <g transform="translate(0, 25)">
-                    <g class="stagger" style="animation-delay: 600ms" transform="translate(25, 0)">
-                        <text class="stat bold" y="12.5">Total Points✨:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="commits">${points}</text>
-                    </g>
-                </g>
-                <g transform="translate(0, 50)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">User's Level 🌟:</text>
                         <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${level}</text>
                     </g>
                 </g>
-                <g transform="translate(0, 75)">
+                <g transform="translate(0, 50)">
                     <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
                         <text class="stat bold" y="12.5">Streaks:</text>
                         <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${streakCount}</text>
                     </g>
                 </g>
-                <g transform="translate(0, 100)">
-                    <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
-                        <text class="stat bold" y="12.5">Current Position:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${currentPosition}</text>
-                    </g>
-                </g>
-                <g transform="translate(0, 125)">
-                    <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
-                        <text class="stat bold" y="12.5">Badges:</text>
-                        <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${badgeCount}</text>
-                    </g>
-                </g>
+                ${userScore}
+                ${badgeCount}
                 ${formattedBadges}
             </svg>
         </g>

@@ -118,7 +118,7 @@ export async function completeTask(user_data, quest, task, context, db) {
           context
         );
       }
-      
+
 
       db.updateData(user_data); // refresh points
 
@@ -153,6 +153,9 @@ function completeQuest(user_data, quest, context) {
       delete user_data.current;
 
       // hardcoded quest logic (its a small prototype 👀)
+      if (quest === "Q0") {
+        acceptQuest(context, user_data, "Q1");
+      }
       if (quest === "Q1") {
         acceptQuest(context, user_data, "Q2");
       }
@@ -270,9 +273,12 @@ async function validateTask(user_data, context, user, db) {
 async function generateSVG(owner, repo, context, user_data, db) {
   try {
     // math for svg dials and numbers (The user banner that will appear on the front page)
-    const user_score = await db.downloadUserData(repo);
+    var user_score = 0
+    if(user_data && user_data.points){
+      user_score = await db.downloadUserData(repo);
+    }
     const currentPos = user_score && user_score.userPosition ? user_score.userPosition : -1;
-    
+
 
     const percentage = user_data.completion * 100;
     const currentStreak =
@@ -295,6 +301,7 @@ async function generateSVG(owner, repo, context, user_data, db) {
     const level = Math.ceil(Number(user_data.xp) / 100);
 
     const badgeDescriptions = {
+      Q0: "Configurator ⚙️",
       Q1: "Explorer 🚀",
       Q2: "Builder 🏗️",
       Q3: "Contributor 🥇",
@@ -304,14 +311,44 @@ async function generateSVG(owner, repo, context, user_data, db) {
     const completedQuests =
       user_data.completed && user_data.completed !== undefined
         ? Object.keys(user_data.completed).filter((quest) => {
-            const tasks = user_data.completed[quest];
-            return Object.values(tasks).every((task) => task.completed);
-          })
+          const tasks = user_data.completed[quest];
+          return Object.values(tasks).every((task) => task.completed);
+        })
         : [];
-    const badgeCount = completedQuests.length;
 
     let formattedBadges = "";
-    let offset = 150; // vertical spacing between entries on svg TODO: not hardcode
+    let userScore = "";
+    let offset = 75; // vertical spacing between entries on svg
+
+    // TODO: user points / position preference
+    if (user_data.display_preference && user_data.display_preference.includes("score")) {
+      userScore = `
+          <g transform="translate(0, ${offset})">
+              <g class="stagger" style="animation-delay: 600ms" transform="translate(25, 0)">
+                  <text class="stat bold" y="12.5">Total Points✨:</text>
+                  <text class="stat bold" x="199.01" y="12.5" data-testid="commits">${points}</text>
+              </g>
+          </g>
+          <g transform="translate(0, ${offset + 25})">
+              <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
+                  <text class="stat bold" y="12.5">Current Position:</text>
+                  <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${currentPos}</text>
+              </g>
+          </g>
+    `
+      offset += 50;
+    }
+
+    const badgeCount = `
+      <g transform="translate(0, ${offset})">
+          <g class="stagger" style="animation-delay: 750ms" transform="translate(25, 0)">
+              <text class="stat bold" y="12.5">Badges:</text>
+              <text class="stat bold" x="199.01" y="12.5" data-testid="prs">${completedQuests.length}</text>
+          </g>
+      </g>
+    `
+    offset += 25
+
     for (let i = 0; i < completedQuests.length; i++) {
       const badge = completedQuests[i];
       formattedBadges += `
@@ -336,12 +373,11 @@ async function generateSVG(owner, repo, context, user_data, db) {
       .replaceAll("${streakCount}", streakCount)
       .replaceAll("${percentage}", percentage)
       .replaceAll("${numCompleted}", numCompleted)
-      .replaceAll("${points}", points)
+      .replaceAll("${userScore}", userScore)
       .replaceAll("${level}", level)
       .replaceAll("${formattedBadges}", formattedBadges)
       .replaceAll("${badgeCount}", badgeCount)
-      .replaceAll("${viewHeight}", 220 + 25 * badgeCount)
-      .replaceAll("${currentPosition}", currentPos);
+      .replaceAll("${viewHeight}", 220 + 25 * completedQuests.length);
 
     // Generate a unique filename based on the current timestamp to cache bust github
     const timestamp = Date.now();
@@ -387,7 +423,7 @@ function getMapLink(user_data, quest, task, completed) {
       const currentQuestIndex = accepted_quests.indexOf(completed);
       const nextQuest =
         currentQuestIndex !== -1 &&
-        currentQuestIndex + 1 < accepted_quests.length
+          currentQuestIndex + 1 < accepted_quests.length
           ? accepted_quests[currentQuestIndex + 1]
           : null;
 
@@ -450,11 +486,9 @@ function displayQuests(user_data, context) {
       if (isCompleted) {
         response += `    -  ~${taskKey} - ${questData[quest][taskKey].desc}~ [[COMPLETED](https://github.com/${repo.owner}/${repo.repo}/issues/${user_data.accepted[quest][taskKey].issueNum})]\n`;
       } else if (task == taskKey) {
-        response += `    - ${taskKey} - ${
-          questData[quest][taskKey].desc
-        } [[Click here to start](https://github.com/${repo.owner}/${
-          repo.repo
-        }/issues/${repo.issue_number + 1})]\n`; // WARNING, this is assuming user is responding on the last issue
+        response += `    - ${taskKey} - ${questData[quest][taskKey].desc
+          } [[Click here to start](https://github.com/${repo.owner}/${repo.repo
+          }/issues/${repo.issue_number + 1})]\n`; // WARNING, this is assuming user is responding on the last issue
       } else {
         response += `    - ${taskKey} - ${questData[quest][taskKey].desc}\n`;
       }
@@ -474,7 +508,10 @@ function displayQuests(user_data, context) {
     }
   }
 
-  response += `\nQuests Map:\n![Quest Map](${mapLink})`;
+  if (user_data.display_preference && user_data.display_preference.includes("map")) {
+    response += `\nQuests Map:\n![Quest Map](${mapLink})`;
+  }
+
   return response;
 }
 
@@ -648,7 +685,7 @@ async function createRepos(context, org, users, db) {
         issue_number: issueResponse.data.number,
         state: "closed",
       });
-      
+
     } catch (error) {
       // log errors for debugging
       context.log.error(
@@ -659,6 +696,20 @@ async function createRepos(context, org, users, db) {
   }
   return `User creation complete:\nSuccessful: ${success}\nError: ${unsuccessful}`;
 }
+
+async function deleteRepo(context, org, repo) {
+  try {
+    // Deletes a repository in the specified organization
+    await context.octokit.repos.delete({
+      owner: org,
+      repo: repo
+    });
+    return `Repository ${repo} deleted successfully in organization ${org}`
+  } catch (error) {
+    return `Error deleting repository: ${error}`;
+  }
+}
+
 
 export const gameFunction = {
   completeTask,
@@ -671,4 +722,5 @@ export const gameFunction = {
   resetReadme,
   updateReadme,
   createRepos,
+  deleteRepo
 };
