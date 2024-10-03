@@ -1,11 +1,14 @@
-FROM node:latest
+FROM node:22
 
-WORKDIR /APP
+WORKDIR /app/OSS-doorway
 
-COPY . . 
+# Copy package files
+COPY package*.json ./
 
-EXPOSE 3000 
-
+# Install dependencies
 RUN npm install
 
-CMD ["npm", "start"]
+# Expose default Probot port
+EXPOSE 3000
+
+CMD [ "npm", "run", "start" ]

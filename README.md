@@ -21,13 +21,14 @@ How to run:
   - DB_NAME <-- name of mongoDB
 
 #### With docker (development)
-1. build docker ```docker build -t probot-dev .```
+1. build docker ```docker build -t OSS-dev .```
 2. run docker, binding to project root directory for more seemless development
 ```
-docker run -d \
+# Run the container with volume binding
+docker run -it --rm \
+  -v "$(pwd)":/app/OSS-doorway \
   -p 3000:3000 \
-  -v /PATH/TO/OSS-DOORWAY \
-  probot-dev
+  OSS-dev
 ```
   - -it for interactive terminal, -d for detached mode
 3. check up on docker container with docker logs (img name)
