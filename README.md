@@ -24,7 +24,6 @@ How to run:
 1. build docker ```docker build -t OSS-dev .```
 2. run docker, binding to project root directory for more seemless development
 ```
-# Run the container with volume binding
 docker run -it --rm \
   -v "$(pwd)":/app/OSS-doorway \
   -p 3000:3000 \
