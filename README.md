@@ -13,11 +13,24 @@ Requirnments:
 - MongoDB
 
 How to run:
+#### Without docker
 1. Run NPM start and go to generated link
 2. Follow instructions and make sure to give access to the repo you want to interact with the bot in!
 3. in .env create two entries (subject to change later)
   - URI <-- uri to mongoDB
   - DB_NAME <-- name of mongoDB
+
+#### With docker (development)
+1. build docker ```docker build -t probot-dev .```
+2. run docker, binding to project root directory for more seemless development
+```
+docker run -d \
+  -p 3000:3000 \
+  -v /PATH/TO/OSS-DOORWAY \
+  probot-dev
+```
+  - -it for interactive terminal, -d for detached mode
+3. check up on docker container with docker logs (img name)
 
 #### Commands
 In issues tab, you can interact with basic bot functions, create a new issue and it will list available commands.

@@ -270,6 +270,7 @@ async function validateTask(user_data, context, user, db) {
 /* ----- FRONT END (ish) ----- */
 /////////////////////////////////
 
+// TODO: do not display on quest 0
 async function generateSVG(owner, repo, context, user_data, db) {
   try {
     // math for svg dials and numbers (The user banner that will appear on the front page)
