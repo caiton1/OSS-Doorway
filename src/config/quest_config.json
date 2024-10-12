@@ -1,6 +1,17 @@
 {
   "oss_repo":"NAU-OSS/jabref",
   "map_repo_link":"https://github.com/RESHAPELab/OSS-Doorway/blob/main/map",
+  "Q0": {
+    "metadata": {
+      "title": "Configuring your environment",
+      "prerequisite": null
+    },
+    "T1": {
+      "desc": "Environment Preferences",
+      "points": 20,
+      "xp": 20
+    }
+  },
   "Q1": {
     "metadata": {
       "title": "Exploring the GitHub World",

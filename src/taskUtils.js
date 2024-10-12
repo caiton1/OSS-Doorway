@@ -6,7 +6,7 @@ async function getIssueCount(repo) {
         if (response.ok) {
             const issues = await response.json();
             // Filter out pull requests
-            const actualIssues = issues.filter(issue => !issue.pull_request);
+            const actualIssues = issues.filter((issue) => !issue.pull_request);
             return actualIssues.length;
         } else {
             console.error("Error:", response.status);
@@ -21,12 +21,14 @@ async function getIssueCount(repo) {
 // assignee to github issue
 async function isFirstAssignee(repo, user, selectedIssue) {
     try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/issues/${selectedIssue}`);
+        const response = await fetch(
+            `https://api.github.com/repos/${repo}/issues/${selectedIssue}`
+        );
         if (!response.ok) {
             throw new Error(`Issue ${selectedIssue} not found in repository ${repo}`);
         }
         const issueSelected = await response.json();
-        const assignees = issueSelected.assignees.map(assignee => assignee.login);
+        const assignees = issueSelected.assignees.map((assignee) => assignee.login);
 
         if (assignees.length === 0) {
             return true; // no assignees
@@ -400,5 +402,4 @@ export const utils = {
     openIssues,
     issueClosed,
     checkAssignee,
-
-}
+};
