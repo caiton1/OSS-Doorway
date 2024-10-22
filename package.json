@@ -20,6 +20,7 @@
     "@octokit/rest": "^21.0.2",
     "dotenv": "^16.4.5",
     "mongodb": "^6.5.0",
+    "mongoose": "^8.7.2",
     "probot": "^13.0.1"
   },
   "devDependencies": {
