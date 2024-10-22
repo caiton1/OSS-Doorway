@@ -18,9 +18,10 @@
   },
   "dependencies": {
     "@octokit/rest": "^21.0.2",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "mongodb": "^6.5.0",
-    "probot": "^13.0.1"
+    "probot": "^0.8.0"
   },
   "devDependencies": {
     "nock": "^14.0.0-beta.5",
