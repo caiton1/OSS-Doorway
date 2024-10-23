@@ -21,9 +21,10 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "mongodb": "^6.5.0",
-    "probot": "^0.8.0"
+    "probot": "^13.3.8"
   },
   "devDependencies": {
+    "localtunnel": "^1.8.3",
     "nock": "^14.0.0-beta.5",
     "smee-client": "^2.0.0"
   },
