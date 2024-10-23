@@ -639,6 +639,8 @@ async function resetReadme(owner, repo, context) {
 async function createRepos(context, org, users, db) {
   var success = [];
   var unsuccessful = [];
+  const ossRepoData = ossRepo.split('/');
+
   for (const username of users) {
     try {
       console.log("creating user");
@@ -663,6 +665,26 @@ async function createRepos(context, org, users, db) {
           username,
           permission: "triage",
         });
+        console.log(ossRepoData[0]);
+        console.log(ossRepoData[1]);
+  
+        // invite user to OSS Repo NOTE: bot will need access to OSS repo to create these issues and invite user
+        await context.octokit.repos.addCollaborator({
+          owner: ossRepoData[0],
+          repo: ossRepoData[1],
+          username,
+          permission: "triage",
+        });
+
+        // create issue in OSS Repo with non-code contribution tag
+        await context.octokit.issues.create({
+          owner: ossRepoData[0],
+          repo: ossRepoData[1],
+          title: username,
+          body: "The Readme file is currently lengthy and complex, making it challenging for newcomers to comprehend how to contribute effectively to the project.\n\nTo enhance accessibility and clarity, I propose relocating the Contributing section to the beginning of the Readme file and streamlining its content where feasible.\n\nI kindly request assistance from anyone willing to dedicate time to address this issue and improve the project's accessibility for all contributors. Thank you!",
+          labels: ["non-code contribution"]
+        })
+
         success.push(username);
       }
       // create issue inside new repo

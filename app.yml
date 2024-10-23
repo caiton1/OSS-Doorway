@@ -122,7 +122,7 @@ default_permissions:
 
   # Get notified of, and update, content references.
   # https://developer.github.com/v3/apps/permissions/
-  # organization_administration: read
+  organization_administration: write
 # The name of the GitHub App. Defaults to the name specified in package.json
 # name: My Probot App
 
