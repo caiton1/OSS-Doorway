@@ -1,9 +1,14 @@
 const mongoose = require("mongoose")
 
 const TaskCompletionSchema = mongoose.Schema({
+    task:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Task",
+        required: [true, "Please add task to taskCompletion"]
+    },
     completed: {
         type: Boolean,
-        required: [true, "Please provide completion status"]
+        required: [true, "Please provide completion status for task"]
     },
     attemps: {
         type: Number
@@ -14,9 +19,15 @@ const TaskCompletionSchema = mongoose.Schema({
     timeEnd: {
         type: Date
     },
-    issueNum: {
-        type: Number
-    }
+    hintsUsed: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Hint"
+    }]
+
+    //! ask connor what this is for 
+    // issueNum: {
+    //     type: Number
+    // }
 })
 
 module.exports = mongoose.model("TaskCompletion", TaskCompletionSchema)

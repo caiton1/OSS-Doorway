@@ -6,6 +6,10 @@ const QuestCompletionSchema = mongoose.Schema({
         ref:"Quest",
         required: [true, "Please add quest to questCompletion"]
     },
+    completed: {
+        type: Boolean,
+        required: [true, "Please provide completion status for quest"]
+    },
     tasks: {
         type: Map,
         of: TaskCompletionSchema

@@ -6,11 +6,11 @@ const QuestSchema = mongoose.Schema({
             type: String,
             required: [true, "Please provide quest name"]
         },
-        prerequisite: {
+        prerequisite: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: "Quest",
             default: null
-        }
+        }]
     },
     tasks: {
         type: Map,
