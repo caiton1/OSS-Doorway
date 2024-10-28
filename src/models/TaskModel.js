@@ -40,3 +40,11 @@ const TaskSchema = mongoose.Schema({
 })
 
 module.exports = mongoose.model("Task", TaskSchema)
+
+
+//xp stays linear you cant subtract
+// used to calculate level
+
+//points is currency
+// can be used to pay for hints
+
