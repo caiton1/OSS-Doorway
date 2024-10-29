@@ -11,8 +11,8 @@ const QuestCompletionSchema = mongoose.Schema({
         required: [true, "Please provide completion status for quest"]
     },
     tasks: {
-        type: Map,
-        of: TaskCompletionSchema
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Task"
     }
 })
 

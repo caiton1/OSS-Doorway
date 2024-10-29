@@ -19,8 +19,8 @@ const GroupSchema = mongoose.schema({
         ref: "GroupOrganizer"
     },
     quests:[{
-        type: Map,
-        of: QuestSchema
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Quest"
     }]
 })
 

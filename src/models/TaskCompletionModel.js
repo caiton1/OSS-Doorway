@@ -14,7 +14,7 @@ const TaskCompletionSchema = mongoose.Schema({
         type: Number
     },
     timeStart: {
-        type: Date //! not sure this is the accurate data type?
+        type: Date 
     },
     timeEnd: {
         type: Date
@@ -22,12 +22,10 @@ const TaskCompletionSchema = mongoose.Schema({
     hintsUsed: {
         type: Number,
         default: 0
+    },
+    issueNum: {
+        type: Number
     }
-
-    //! ask connor what this is for 
-    // issueNum: {
-    //     type: Number
-    // }
 })
 
 module.exports = mongoose.model("TaskCompletion", TaskCompletionSchema)

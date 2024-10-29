@@ -1,17 +1,19 @@
 const mongoose = require("mongoose")
 
 
-//!handle the case of images or videos being in here
 const TaskSchema = mongoose.Schema({
+    taskTitle: {
+        type: String,
+        required: [true, "Please provide a task title"]
+    },
     questId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Quest"
     },
     desc:{
         type: String,
-        required: [true, "please provide a description for the task"]
+        required: [true, "Please provide a description for the task"]
     },
-    //! difference between points and xp
     points:{
         type: Number,
         required: [true, "Please provide the number of points for this task"]
@@ -20,23 +22,28 @@ const TaskSchema = mongoose.Schema({
         type: Number,
         required: [true, "Please provide the xp for this task"]
     },
-    //! would like some feedback on the hint and response bit below
     hints: [{
-        type: Map,
-        of: HintSchema
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Hint"
     }],
-    responses: [{
-        responseImage: {},
-        responseVideo: {},
-        responseText: {}
-    }],
-    //! make this a part of the hint model
-    hintPenalty: {
-        type: Number,
-        default: 5
+    responses: {
+        accept: {
+            type: String,
+            required: [true, "Response must include 'accept' case"]
+        },
+        error: {
+            type: String,
+            required: [true, "Response must include 'error' case"],
+        },
+        success: {
+            type: String,
+            required: [true, "Response must include 'success' case"]
+        }
     },
-    //!
-    answer: {}
+    answer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Answer"
+    }
 })
 
 module.exports = mongoose.model("Task", TaskSchema)

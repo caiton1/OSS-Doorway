@@ -6,8 +6,8 @@ const GroupOrganizerSchema = mongoose.Schema({
         required: [true, "Group needs an owner"]
     },
     ownedGroups: [{
-        type: Map,
-        of: GroupSchema
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Group"
     }]
 })
 

@@ -27,8 +27,8 @@ const StudentSchema = mongoose.Schema({
             default: 0
         },
         completed:{
-            type: Map,
-            of: QuestCompletionSchema
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "QuestCompletion"
         },
         accepted: QuestCompletionSchema,
         current: {
