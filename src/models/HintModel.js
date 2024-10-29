@@ -9,6 +9,10 @@ const HintSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Task"
     },
+    temporaryID: {
+        //example = "Q1T1"
+        type: String
+    },
     sequence:{
         type: Number,
         required: [true, "Please provide a sequence for the hint"]
