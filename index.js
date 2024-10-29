@@ -133,6 +133,26 @@ async function parseCommand(context, org, comment) {
           } catch {
             response = "repo reset failed";
           }
+          // might need to add hints to this?
+          case "new_hint":
+          // create hint
+          status = await db.createHint(argument);
+          if (status) {
+            response = "Hint added";
+            //var user_document = await db.downloadUserData(argument);
+            //gameFunction.acceptQuest(context, user_document.user_data, "Q0");
+            // update readme and data
+            /*gameFunction.updateReadme(
+              owner,
+              repo,
+              context,
+              user_document.user_data
+            );*/ // TODO: same as below
+            //await db.hintData(user_document);
+          } else {
+            response = "Failed to create new user, user already exists";
+          }
+          break;
           
           
           break;

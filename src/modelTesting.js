@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
 const StudentModel = require("./models/StudentModel")
+const HintModel = require("./models/HintModel")
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -54,6 +55,7 @@ export class MongoDB {
       return false;
     }
   }
+
   async wipeUser(userName) {
     console.log(`Wiping user: ${userName}.`);
     try {
@@ -116,8 +118,6 @@ export class MongoDB {
     }
   }
   
-  
-
   async userExists(userName) {
     try {
       const userDocument = await this.collection.findOne({ _id: userName });
@@ -125,6 +125,42 @@ export class MongoDB {
     } catch (error) {
       console.error("Error checking if user exists:", error);
       return false;
+    }
+  }
+
+  async createHint(comment) { //need to distinguish each part
+    try {
+        // let sequence = 
+        // let penalty = 
+        // let content =
+        let newHint = new HintModel({
+            sequence,
+            penalty,
+            content,
+        })
+        newHint = await newHint.save();
+        
+        return true;
+    } catch (error) {
+      if (error.code === 11000) {
+        console.log("Student already exists!");
+      } else {
+        console.error("Error creating hint:", error);
+      }
+      return false;
+    }
+  }
+
+  async updateHint(hintData) {
+    const filterQuery = { _id: hintData._id };
+    const updateQuery = { $set: hintData };
+    try {
+      this.collectionName = "hint_data";
+      await this.collection.updateOne(filterQuery, updateQuery, {
+        upsert: true,
+      });
+    } catch (error) {
+      console.error("Error updating hint data:", error);
     }
   }
 }

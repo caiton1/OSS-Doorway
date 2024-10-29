@@ -27,4 +27,5 @@ const HintSchema = mongoose.Schema({
     }
 })
 
-export default mongoose.model("Hint", HintSchema)
+export const HintModel = mongoose.model("Hint", HintSchema);
+export default HintModel;
