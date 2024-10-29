@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from "mongoose";
 
 const AnswerSchema = new mongoose.Schema({
     task:{
@@ -10,4 +10,4 @@ const AnswerSchema = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model("Answer", AnswerSchema)
+export default mongoose.model("Answer", AnswerSchema)

@@ -1,6 +1,11 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const QuestSchema = mongoose.Schema({
+    questKey: {
+        type: String,
+        required: true,
+        unique: true
+    },
     questTitle: {
         type: String,
         required: [true, "Please provide quest name"]
@@ -10,10 +15,10 @@ const QuestSchema = mongoose.Schema({
         ref: "Quest",
         default: null
     }],
-    tasks: {
+    tasks: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Task"
-    }
-})
+    }]
+});
 
-module.exports = mongoose.model("Quest", QuestSchema)
+export default mongoose.model("Quest", QuestSchema);

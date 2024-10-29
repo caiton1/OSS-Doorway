@@ -1,7 +1,10 @@
-const mongoose = require("mongoose")
-
+import mongoose from "mongoose";
 
 const TaskSchema = mongoose.Schema({
+    taskKey: {
+        type: String,
+        required: true,
+    },
     taskTitle: {
         type: String,
         required: [true, "Please provide a task title"]
@@ -22,10 +25,6 @@ const TaskSchema = mongoose.Schema({
         type: Number,
         required: [true, "Please provide the xp for this task"]
     },
-    hints: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Hint"
-    }],
     responses: {
         accept: {
             type: String,
@@ -39,19 +38,7 @@ const TaskSchema = mongoose.Schema({
             type: String,
             required: [true, "Response must include 'success' case"]
         }
-    },
-    answer: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Answer"
     }
-})
+});
 
-module.exports = mongoose.model("Task", TaskSchema)
-
-
-//xp stays linear you cant subtract
-// used to calculate level
-
-//points is currency
-// can be used to pay for hints
-
+export default mongoose.model("Task", TaskSchema);

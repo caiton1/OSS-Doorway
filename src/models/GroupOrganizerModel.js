@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose";
 
 const GroupOrganizerSchema = mongoose.Schema({
     username: {
@@ -11,4 +11,4 @@ const GroupOrganizerSchema = mongoose.Schema({
     }]
 })
 
-module.exports = mongoose.model("GroupOrganizer", GroupOrganizerSchema)
+export default mongoose.model("GroupOrganizer", GroupOrganizerSchema)

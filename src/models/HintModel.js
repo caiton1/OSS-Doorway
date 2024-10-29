@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose";
 
 const HintSchema = mongoose.Schema({
     quest:{
@@ -27,4 +27,4 @@ const HintSchema = mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model("Hint", HintSchema)
+export default mongoose.model("Hint", HintSchema)

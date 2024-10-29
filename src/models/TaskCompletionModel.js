@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose";
 
 const TaskCompletionSchema = mongoose.Schema({
     task:{
@@ -28,4 +28,4 @@ const TaskCompletionSchema = mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model("TaskCompletion", TaskCompletionSchema)
+export default mongoose.model("TaskCompletion", TaskCompletionSchema)
