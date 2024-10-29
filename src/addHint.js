@@ -56,6 +56,8 @@ export class Hints
         await this.client.close();
         console.log("MongoDB connection has closed.");
     }
+
+    //! make a get request to test for errors
 }
 
 const input = prompt();
