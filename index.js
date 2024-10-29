@@ -4,14 +4,15 @@
  */
 import { gameFunction } from "./src/gamification.js";
 import { MongoDB } from "./src/database.js";
+import mongoose from "mongoose";
 import fs from "fs";
 const responseFilePath = "./src/config/response.json";
 const responses = JSON.parse(
   fs.readFileSync(responseFilePath, "utf-8")
 ).responses;
-
 const db = new MongoDB();
 await db.connect();
+
 export default (app) => {
   // TODO: update to reflect new command structure
   app.on("issues.opened", async (context) => {
@@ -49,20 +50,33 @@ export default (app) => {
     else {
       if (context.payload.comment.user.type === "Bot") return;
       try {
+        await connectToDatabase();
         var user_document = await db.downloadUserData(user);
         await gameFunction.validateTask(user_document.user_data, context, user, db);
         db.updateData(user_document);
-      } catch {
+        mongoose.disconnect();
+      } catch (error) {
         issueComment(
           context,
           "user " +
             user +
             " commented but does not yet exist in database. /new_user <user>"
         );
+        console.log(error);
       }
     }
   });
 };
+
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(`${process.env.URI}/${process.env.DB_NAME}`, { useNewUrlParser: true, useUnifiedTopology: true });
+    console.log("Database connected successfully");
+  } catch (err) {
+    console.error("Database connection error:", err);
+    process.exit(1); // fail code
+  }
+}
 
 // match and break down / command
 async function parseCommand(context, org, comment) {

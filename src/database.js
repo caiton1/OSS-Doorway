@@ -1,4 +1,6 @@
 import { MongoClient } from "mongodb";
+import Quest from "./models/QuestModel.js";
+import Task from "./models/TaskModel.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -11,6 +13,24 @@ export class MongoDB {
     this.client = new MongoClient(this.uri);
     this.dbName = "gamification";
     this.collectionName = "user_data";
+  }
+
+
+  async findTaskResponse(questKey, taskKey) {
+    try {
+        const quest = await Quest.findOne({ questKey }).populate("tasks");
+        if (!quest) {
+            throw new Error(`Quest with questKey ${questKey} not found`);
+        }
+
+        const task = await Task.findOne({ questId: quest._id, taskKey });
+        if (!task) {
+            throw new Error(`Task with taskKey ${taskKey} not found in Quest ${questKey}`);
+        }
+        return task.responses;
+    } catch (error) {
+        console.error("Error finding task response:", error);
+    }
   }
 
   async connect() {
@@ -113,8 +133,6 @@ export class MongoDB {
       console.error("Error downloading user data:", error);
     }
   }
-  
-  
 
   async userExists(userName) {
     try {
