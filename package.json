@@ -21,7 +21,8 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "mongodb": "^6.5.0",
-    "probot": "^13.3.8"
+    "mongoose": "^8.7.2",
+    "probot": "^13.0.1"
   },
   "devDependencies": {
     "localtunnel": "^1.8.3",
