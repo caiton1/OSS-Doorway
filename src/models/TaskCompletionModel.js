@@ -19,7 +19,10 @@ const TaskCompletionSchema = mongoose.Schema({
     timeEnd: {
         type: Date
     },
-
+    hintsUsed: {
+        type: Number,
+        default: 0
+    }
 
     //! ask connor what this is for 
     // issueNum: {
