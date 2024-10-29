@@ -1,0 +1,200 @@
+{
+    "Q1":{
+        "T1":{
+            "H1":{
+                "content": "### 💡 Hints\n\n**Hint 1:** Make sure you click on the tab called **\"Issues\"** at the top of the page.\n\n",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/b99abf76-785c-498f-b9cb-dc038c349de0",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡 Hints\n\n**Hint 2:** Make sure you count the right number of Open issues. Enter the number of open issues in the comment box.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/a324ae1d-fa09-493a-a242-214ecc0b90f8",
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T2":{
+            "H1":{
+                "content": "### 💡 Hints\n\n**Hint 1:** Look for a tab labeled **\"Pull requests\"** ✉️ at the top of the repository page.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/3fc17d16-03ea-49e8-910e-4ce3055e8be9",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡 Hints\n\n**Hint 2:** Focus on counting only the **OPEN** pull requests listed there.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/baf54233-19c1-4dc5-8006-9c1974f24dd2",
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T3":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  Look for a button labeled \"Fork\" on the main page of the repository.",
+                "video": null,
+                "image": null,
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints\n\n**Hint 2:** The Fork button is typically found in one of the **four corners** of the main repository page.",
+                "video": null,
+                "image": null,
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T4":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  The **README** contents are usually below the file listing on the main page.",
+                "video": null,
+                "image": null,
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints\n\n**Hint 2:**  Look for the section heading that **matches** one of the answers.",
+                "video": null,
+                "image": null,
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T5":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  The **contributors** can be found under the **\"Insights\"** tab which is usually between the \"Actions\" and \"Security\" tabs at the top of the page.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/2a2b1038-1b68-4a0f-b81b-9db420b0a8a2",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints\n\n**Hint 2:**  In the **\"Insights\"** tab, find the **\"Contributors\"** section in the sidebar menu on the left.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/9c1080c6-cd20-4b07-b94c-871ce6dde106",
+                "sequence": 2,
+                "penalty" : 5
+            }
+        }
+    },
+    "Q2":{
+        "T1":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  The **\"Issues\"** tab 📝 is at the top of the repository page, where you can find all current issues.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/b99abf76-785c-498f-b9cb-dc038c349de0",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints \n\n**Hint 2:**  Focus on finding the issue that has a **non-contribution code** tag in the title.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/696d5596-73b3-4e69-a648-10adb254fc8b",
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T2":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  Revisit the **\"Issues\"** tab 📝 to locate the issue you selected earlier.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/b99abf76-785c-498f-b9cb-dc038c349de0",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints\n\n**Hint 2:**  The **“Assignees”** section is on the right side of the issue page. Click **“Assign yourself”** or the gear icon next to “Assignees” to take **ownership** of the issue.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/7783c313-7add-4708-9e0d-4a154e9eb6be",
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T3":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  Return to the **\"Issues\"** tab 📝 and **open** the issue you've assigned to yourself.",
+                "video": null,
+                "image": null,
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints\n\n**Hint 1:**  Return to the **\"Issues\"** tab 📝 and **open** the issue you've assigned to yourself.",
+                "video": null,
+                "image": null,
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T4":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  Return to the **\"Issues\"** tab 📝 and **open** the issue you've assigned to yourself.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/2a2b1038-1b68-4a0f-b81b-9db420b0a8a2",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints\n\n**Hint 2:** In the issue’s **comment section**, type **\"@\"** followed by the contributor’s username to tag them.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/0f13af3a-015c-416e-9d44-2efba1d928c9",
+                "sequence": 2,
+                "penalty" : 5
+            }
+        }
+    },
+    "Q3":{
+        "T1":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  First look for your issue and then when **committing** your changes, select the option to create a **new branch**",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/b4ec541f-af4a-4de4-a660-a3bc68c42b18",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints \n\n**Hint 2:**  Follow through with the proposed changes by creating a **pull request**.",
+                "video": null,
+                "image": null,
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T2":{
+            "H1":{
+                "content": "### 💡Hints \n\n**Hint 2:**  Follow through with the proposed changes by creating a **pull request**.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/2daeaa3a-bc27-4ea2-be1f-cab3db4530a3",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints\n\n**Hint 2:**  Scroll to the **bottom** of the PR page to add a **comment** requesting a review.  You can **mention** specific individuals or ask any available reviewer for feedback, and remember to be polite and thankful!",
+                "video": null,
+                "image": null,
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T3":{
+            "H1":{
+                "content": "### 💡Hints\n\n**Hint 2:**  Scroll to the **bottom** of the PR page to add a **comment** requesting a review.  You can **mention** specific individuals or ask any available reviewer for feedback, and remember to be polite and thankful!",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/b99abf76-785c-498f-b9cb-dc038c349de0",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### 💡Hints\n\n**Hint 2:** Open the issue and find the **\"Close issue\"** button, either at the top or bottom of the page. Consider adding a comment to summarize the resolution before clicking \"Close.\"",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/78694e36-1655-4da3-9fa9-16f462bb7bd6",
+                "sequence": 2,
+                "penalty" : 5
+            }
+        }
+    }
+}

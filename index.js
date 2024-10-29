@@ -37,7 +37,6 @@ export default (app) => {
     // in orgs, the org is the "owner" of the repo
     const { owner, repo } = context.repo();
     const comment = context.payload.comment.body;
-
     // admin commands
     if (comment.startsWith("/")) {
       if (await isAdmin(context, owner, user) || context.payload.comment.user.type === "Bot") {
@@ -46,6 +45,19 @@ export default (app) => {
         issueComment(context, "You need to be a repo or org owner to run / commands.");
       }
     } 
+    else if (comment.startsWith("help")){ // TODO: complete placeholder
+      try{
+        await connectToDatabase();
+        var user_document = await db.downloadUserData(user);
+        await gameFunction.giveHint(user_document, context, db);
+        db.updateData(user_document);
+        mongoose.disconnect();
+      }
+      catch (error) {
+        console.log(error);
+      }
+    }
+
     // quest response
     else {
       if (context.payload.comment.user.type === "Bot") return;

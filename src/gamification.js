@@ -37,6 +37,7 @@ function acceptQuest(context, user_data, quest) {
             user_data.accepted[quest][task] = {
               completed: false,
               attempts: 0,
+              hints: 0,
               timeStart: 0,
               timeEnd: 0.0,
               issueNum: 0,
@@ -209,6 +210,38 @@ async function createQuestEnvironment(user_data, quest, task, context) {
     console.error("Error creating new issue: ", error);
   }
 }
+async function giveHint(user_data, context, db){
+  // user_data.current.(quest, hint)
+  const quest = user_data.user_data.current.quest;
+  const task = user_data.user_data.current.task;
+  var response = '';
+
+  // user hints used
+  if (!("hints" in user_data.user_data.accepted[quest][task])){
+    user_data.user_data.accepted[quest][task].hints = 0;
+  }
+  const hints = user_data.user_data.accepted[quest][task].hints;
+  const hintResponse = await db.findHintResponse(quest, task, hints + 1)
+
+  if(hintResponse == null){
+    response = "There are no more hints!";
+  }
+  else
+  {
+    response += `${hintResponse}`;
+    user_data.user_data.points -= 5; // arbitrary for now, but stored in DB
+    user_data.user_data.accepted[quest][task].hints += 1;
+  }
+  
+
+  var issueComment = context.issue({
+    body: response,
+  });
+  await context.octokit.issues.createComment(issueComment);
+
+}
+
+// 
 
 // validates task by using object oriented function mapping from the taskMapping.js file
 async function validateTask(user_data, context, user, db) {
@@ -745,5 +778,6 @@ export const gameFunction = {
   resetReadme,
   updateReadme,
   createRepos,
-  deleteRepo
+  deleteRepo,
+  giveHint
 };
