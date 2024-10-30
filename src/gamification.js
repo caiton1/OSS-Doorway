@@ -288,6 +288,11 @@ async function validateTask(user_data, context, user, db) {
       selectedIssue,
       db
     );
+    // detect user use hint TODO: temp
+    //if(user_data.user_data.accepted[quest][task].hints > 0){
+    //  ifresponse += questResponse[quest][task].hints
+    //} 
+
     response += `\n\nReturn [Home](https://github.com/${owner}/${repo})`;
 
     var issueComment = context.issue({
