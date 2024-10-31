@@ -197,6 +197,32 @@ async function userCommited(repo, user, context) {
     }
 }
 
+async function getTopContributor(ossRepo, context) {
+    // Destructure owner and repo from the repository name (e.g., "owner/repo")
+    const [owner, repo] = ossRepo.split("/");
+
+    try {
+        // Fetch the list of contributors sorted by their contributions
+        const { data: contributors } = await context.octokit.repos.listContributors({
+            owner,
+            repo,
+            per_page: 1,
+            order: "desc", // By default, GitHub API returns contributors in descending order by commits
+        });
+
+        // Ensure there is at least one contributor
+        if (contributors.length > 0) {
+            // Return the login (username) of the top contributor
+            return contributors[0].login;
+        } else {
+            throw new Error("No contributors found for the repository.");
+        }
+    } catch (error) {
+        console.error("Error fetching top contributor:", error);
+        throw error;
+    }
+}
+
 async function countContributors(repo, context) {
     try {
         const installationID = context.payload.installation.id;
@@ -402,4 +428,5 @@ export const utils = {
     openIssues,
     issueClosed,
     checkAssignee,
+    getTopContributor
 };

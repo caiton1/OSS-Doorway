@@ -71,12 +71,19 @@ export class MongoDB {
       return false;
     }
   }
+
   async updateData(userData) {
+    if (!userData || !userData._id) {
+      console.error("Invalid user data. _id cannot be null or undefined.");
+      return;
+    }
+
     const filterQuery = { _id: userData._id };
     const updateQuery = { $set: userData };
+
     try {
       await this.collection.updateOne(filterQuery, updateQuery, {
-        upsert: true,
+        upsert: true, // This will create a new user if not found
       });
     } catch (error) {
       console.error("Error updating user data:", error);
@@ -131,26 +138,25 @@ export class MongoDB {
 
   async findHintResponse(questKey, taskKey, sequence) {
     try {
-        const tempID = questKey + taskKey;
-        var response = ""
-        const hints = await Hint.find({ temporaryID: tempID, sequence: sequence });
-        console.log(hints[0]);
-        if (hints.length > 0) {
-            if(hints[0].image != null){
-              response = hints[0].content + `\n![image](${hints[0].image})`
-            }
-            else {
-              response = hints[0].content
-            }
-            return response;
-        } else {
-            return null; 
+      const tempID = questKey + taskKey;
+      var response = ""
+      const hints = await Hint.find({ temporaryID: tempID, sequence: sequence });
+      if (hints.length > 0) {
+        if (hints[0].image != null) {
+          response = hints[0].content + `\n![image](${hints[0].image})`
         }
-    } catch (error) {
-        console.error("Error finding hint response:", error);
+        else {
+          response = hints[0].content
+        }
+        return response;
+      } else {
         return null;
+      }
+    } catch (error) {
+      console.error("Error finding hint response:", error);
+      return null;
     }
-}
+  }
 
   async findTaskResponse(questKey, taskKey) {
     try {

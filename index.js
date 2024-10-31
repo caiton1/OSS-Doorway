@@ -49,7 +49,7 @@ export default (app) => {
       try{
         await connectToDatabase();
         var user_document = await db.downloadUserData(user);
-        await gameFunction.giveHint(user_document, context, db);
+        await gameFunction.giveHint(user_document.user_data, context, db);
         db.updateData(user_document);
         mongoose.disconnect();
       }
