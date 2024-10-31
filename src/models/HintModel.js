@@ -24,6 +24,12 @@ const HintSchema = mongoose.Schema({
     content: {
         type: String,
         required: [true, "Please provide content for the hint"]
+    },
+    image: {
+        type: String,
+    },
+    video: {
+        type: String,
     }
 })
 

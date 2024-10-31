@@ -1,6 +1,7 @@
 import { MongoClient } from "mongodb";
 import Quest from "./models/QuestModel.js";
 import Task from "./models/TaskModel.js";
+import Hint from "./models/HintModel.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -11,26 +12,8 @@ export class MongoDB {
   constructor() {
     this.uri = process.env.URI;
     this.client = new MongoClient(this.uri);
-    this.dbName = "gamification";
+    this.dbName = process.env.DB_NAME;
     this.collectionName = "user_data";
-  }
-
-
-  async findTaskResponse(questKey, taskKey) {
-    try {
-        const quest = await Quest.findOne({ questKey }).populate("tasks");
-        if (!quest) {
-            throw new Error(`Quest with questKey ${questKey} not found`);
-        }
-
-        const task = await Task.findOne({ questId: quest._id, taskKey });
-        if (!task) {
-            throw new Error(`Task with taskKey ${taskKey} not found in Quest ${questKey}`);
-        }
-        return task.responses;
-    } catch (error) {
-        console.error("Error finding task response:", error);
-    }
   }
 
   async connect() {
@@ -88,12 +71,19 @@ export class MongoDB {
       return false;
     }
   }
+
   async updateData(userData) {
+    if (!userData || !userData._id) {
+      console.error("Invalid user data. _id cannot be null or undefined.");
+      return;
+    }
+
     const filterQuery = { _id: userData._id };
     const updateQuery = { $set: userData };
+
     try {
       await this.collection.updateOne(filterQuery, updateQuery, {
-        upsert: true,
+        upsert: true, // This will create a new user if not found
       });
     } catch (error) {
       console.error("Error updating user data:", error);
@@ -104,30 +94,32 @@ export class MongoDB {
     try {
       // Fetch all points sorted in descending order
       const points = await this.collection
-        .find({}, { projection: { '_id': 0, 'user_data.points': 1 } })
+        .find({}, { projection: { _id: 0, "user_data.points": 1 } })
         .toArray();
-      
+
       // Map points array to just points values, handling undefined user_data or points
       const sortedPoints = points
-        .map(doc => (doc.user_data && doc.user_data.points) || 0) // Fallback to 0 if undefined
+        .map((doc) => (doc.user_data && doc.user_data.points) || 0) // Fallback to 0 if undefined
         .sort((a, b) => b - a); // Sort in descending order
-    
+
       // Get the specific user
       const userDoc = await this.collection.findOne({ _id: user });
-      const userScore = userDoc && userDoc.user_data ? userDoc.user_data.points : null;
-    
+      const userScore =
+        userDoc && userDoc.user_data ? userDoc.user_data.points : null;
+
       if (userDoc) {
         // Find the user's position in the sorted array
         const userPosition = sortedPoints.indexOf(userScore);
-        const nextUserScore = userPosition > 0 ? sortedPoints[userPosition - 1] : null; // Previous score in sorted array
+        const nextUserScore =
+          userPosition > 0 ? sortedPoints[userPosition - 1] : null; // Previous score in sorted array
         const maxUserScore = sortedPoints[0]; // Highest score
-    
+
         // Add additional properties to the userDoc
         userDoc.userPosition = userPosition + 1; // Adjust for 1-based index
         userDoc.nextUserScore = nextUserScore;
         userDoc.maxUserScore = maxUserScore;
       }
-    
+
       return userDoc; // Return the user document with additional fields
     } catch (error) {
       console.error("Error downloading user data:", error);
@@ -143,5 +135,45 @@ export class MongoDB {
       return false;
     }
   }
-}
 
+  async findHintResponse(questKey, taskKey, sequence) {
+    try {
+      const tempID = questKey + taskKey;
+      var response = ""
+      const hints = await Hint.find({ temporaryID: tempID, sequence: sequence });
+      if (hints.length > 0) {
+        if (hints[0].image != null) {
+          response = hints[0].content + `\n![image](${hints[0].image})`
+        }
+        else {
+          response = hints[0].content
+        }
+        return response;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Error finding hint response:", error);
+      return null;
+    }
+  }
+
+  async findTaskResponse(questKey, taskKey) {
+    try {
+      const quest = await Quest.findOne({ questKey }).populate("tasks");
+      if (!quest) {
+        throw new Error(`Quest with questKey ${questKey} not found`);
+      }
+
+      const task = await Task.findOne({ questId: quest._id, taskKey });
+      if (!task) {
+        throw new Error(
+          `Task with taskKey ${taskKey} not found in Quest ${questKey}`
+        );
+      }
+      return task.responses;
+    } catch (error) {
+      console.error("Error finding task response:", error);
+    }
+  }
+}

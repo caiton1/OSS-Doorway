@@ -37,6 +37,7 @@ function acceptQuest(context, user_data, quest) {
             user_data.accepted[quest][task] = {
               completed: false,
               attempts: 0,
+              hints: 0,
               timeStart: 0,
               timeEnd: 0.0,
               issueNum: 0,
@@ -120,7 +121,7 @@ export async function completeTask(user_data, quest, task, context, db) {
       }
 
 
-      db.updateData(user_data); // refresh points
+      //db.updateData(user_data); // refresh points
 
       await updateReadme(owner, repo, context, user_data, db);
       return true;
@@ -180,11 +181,17 @@ async function createQuestEnvironment(user_data, quest, task, context) {
   // most will be creating an issue with multiple choice
 
   try {
-    // using global var quests and checking if in quest_config
+    // Using global var quests and checking if in quest_config
     if (quests[quest]) {
       const questData = quests[quest];
       response = response[quest];
+
+      // Initialize the quest and task in user_data.accepted if they don't exist
+      user_data.accepted[quest] = user_data.accepted[quest] || {};
+      user_data.accepted[quest][task] = user_data.accepted[quest][task] || {};
+
       if (questData[task]) {
+        // Assign the start time once the structure is confirmed to exist
         user_data.accepted[quest][task].timeStart = Date.now();
         response = response[task].accept;
         title = questData[task].desc;
@@ -209,8 +216,40 @@ async function createQuestEnvironment(user_data, quest, task, context) {
     console.error("Error creating new issue: ", error);
   }
 }
+async function giveHint(user_data, context, db) {
+  // user_data.current.(quest, hint)
+  const quest = user_data.current.quest;
+  const task = user_data.current.task;
+  var response = '';
+
+  // user hints used
+  if (!("hints" in user_data.accepted[quest][task])) {
+    user_data.accepted[quest][task].hints = 0;
+  }
+  const hints = user_data.accepted[quest][task].hints;
+  const hintResponse = await db.findHintResponse(quest, task, hints + 1)
+
+  if (hintResponse == null) {
+    response = "There are no more hints!";
+  }
+  else {
+    response += `${hintResponse}`;
+    user_data.points -= 5; // arbitrary for now, but stored in DB
+    user_data.accepted[quest][task].hints += 1;
+  }
+
+
+  var issueComment = context.issue({
+    body: response,
+  });
+  await context.octokit.issues.createComment(issueComment);
+
+}
+
+// 
 
 // validates task by using object oriented function mapping from the taskMapping.js file
+// validates task by using object-oriented function mapping from the taskMapping.js file
 async function validateTask(user_data, context, user, db) {
   try {
     // issue context
@@ -219,22 +258,25 @@ async function validateTask(user_data, context, user, db) {
     const quest = user_data.current.quest;
     const { owner, repo } = context.repo();
 
-    // incriment attempt
-    user_data.accepted[quest][task].attempts += 1;
-    // streak
+    // check if quest is in accepted or completed
+    const questData = user_data.accepted[quest] || user_data.completed[quest];
+
+    // increment attempt
+    questData[task].attempts += 1;
+
+    // update streak
     if (user_data.streakCount != null) {
       // no failed attempt
-      if (user_data.accepted[quest][task].attempts <= 1) {
+      if (questData[task].attempts <= 1) {
         user_data.currentStreak += 1;
-        // check if streak is full
-        // TODO: remove hardcode
+
+        // check if streak is full (remove hardcode later)
         if (user_data.currentStreak > 2) {
           user_data.currentStreak = 0;
           user_data.streakCount += 1;
         }
-      }
-      // failed, reset streak
-      else {
+      } else {
+        // failed, reset streak
         user_data.currentStreak = 0;
       }
     } else {
@@ -245,8 +287,9 @@ async function validateTask(user_data, context, user, db) {
 
     // validate current task
     const taskHandler = taskMapping[quest][task]; // function mapped through dictionary
-    var response = questResponse[quest][task];
-    response = await taskHandler(
+    let response = questResponse[quest][task];
+    let success = null;
+    let result = await taskHandler(
       user_data,
       user,
       context,
@@ -255,9 +298,42 @@ async function validateTask(user_data, context, user, db) {
       selectedIssue,
       db
     );
+
+    response = result[0];
+    success = result[1];
+
+    // detect if user used a hint
+    if (success) {
+      if (questData[task].hints > 0) {
+        if ("hints" in questResponse[quest][task]) {
+          response += questResponse[quest][task].hints;
+        }
+      } else {
+        if ("noHints" in questResponse[quest][task]) {
+          response += questResponse[quest][task].noHints;
+        }
+      }
+    }
+
+    const experiencePoints = quests[quest][task].xp;
+    const currentPoints = user_data.points;
+    const remainingPoints = user_data.xp % 100;
+    const completionPercent = user_data.completion * 100;
+    const hintsUsed = questData[task].hints || 0;
+
+    // replace placeholders in response
+    response = response
+      .replaceAll("${experiencePoints}", experiencePoints)
+      .replaceAll("${currentPoints}", currentPoints)
+      .replaceAll("${pointsRemaining}", remainingPoints)
+      .replaceAll("${completionRate}", completionPercent)
+      .replaceAll("${hintsUsed}", hintsUsed)
+      .replaceAll("${pointLoss}", hintsUsed * -5);
+
     response += `\n\nReturn [Home](https://github.com/${owner}/${repo})`;
 
-    var issueComment = context.issue({
+    // post the response as a comment on the issue
+    const issueComment = context.issue({
       body: response,
     });
     await context.octokit.issues.createComment(issueComment);
@@ -265,6 +341,7 @@ async function validateTask(user_data, context, user, db) {
     console.error("Error validating task: " + error);
   }
 }
+
 
 /////////////////////////////////
 /* ----- FRONT END (ish) ----- */
@@ -275,7 +352,7 @@ async function generateSVG(owner, repo, context, user_data, db) {
   try {
     // math for svg dials and numbers (The user banner that will appear on the front page)
     var user_score = 0
-    if(user_data && user_data.points){
+    if (user_data && user_data.points) {
       user_score = await db.downloadUserData(repo);
     }
     const currentPos = user_score && user_score.userPosition ? user_score.userPosition : -1;
@@ -667,7 +744,7 @@ async function createRepos(context, org, users, db) {
         });
         console.log(ossRepoData[0]);
         console.log(ossRepoData[1]);
-  
+
         // invite user to OSS Repo NOTE: bot will need access to OSS repo to create these issues and invite user
         await context.octokit.repos.addCollaborator({
           owner: ossRepoData[0],
@@ -745,5 +822,6 @@ export const gameFunction = {
   resetReadme,
   updateReadme,
   createRepos,
-  deleteRepo
+  deleteRepo,
+  giveHint
 };
