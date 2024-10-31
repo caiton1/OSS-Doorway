@@ -34,11 +34,3 @@ docker run -it --rm \
 
 #### Commands
 In issues tab, you can interact with basic bot functions, create a new issue and it will list available commands.
-
-#### License
-
-
-key = 'ojyna1MtpZg9JUX9' 
-user = 'pedro_oliveira'
-mongodb_url = "mongodb://atlas-sql-65d4293331917a0c14ed7071-v5nlb.a.query.mongodb.net/gamification?ssl=true&authSource=admin" 
-database_name = "gamification"
