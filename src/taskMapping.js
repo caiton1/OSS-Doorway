@@ -73,7 +73,6 @@ async function handleQ1T3(user_data, user, context, ossRepo, response, selectedI
     if (context.payload.comment.body.toLowerCase().includes(correctAnswer)) {
         completeTask(user_data, "Q1", "T3", context, db);
         return [response.success, true];
-
     }
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
@@ -183,6 +182,66 @@ async function handleQ3T3(user_data, user, context, ossRepo, response, selectedI
     return [response, false];
 }
 
+async function handleQ1Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
+    const correctAnswers = ["b", "a", "c", "b", "d", "c"]; 
+    const userAnswerString = context.payload.comment.body;
+    
+    try {
+      const { correctAnswersNumber, feedback } = validateAnswers(userAnswerString, correctAnswers);
+  
+      completeTask(user_data, "Q1", "Quiz", context, db);
+  
+      response = response.success + 
+        `Number of Correct Answers: ${correctAnswersNumber}` + 
+        `\n\nFeedback:\n${feedback.join('')}`;
+
+      return [response, true];
+    } catch (error) {
+      response = response.error + `\n\n[Click here to start](https://github.com/${ossRepo})`;
+      return [response, false];
+    }
+}
+
+async function handleQ2Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
+    const correctAnswers = ["c", "b", "c", "c", "b", "c"]; 
+    const userAnswerString = context.payload.comment.body;
+    
+    try {
+      const { correctAnswersNumber, feedback } = validateAnswers(userAnswerString, correctAnswers);
+  
+      completeTask(user_data, "Q2", "Quiz", context, db);
+  
+      response = response.success + 
+        `Number of Correct Answers: ${correctAnswersNumber}` + 
+        `\n\nFeedback:\n${feedback.join('')}`;
+
+      return [response, true];
+    } catch (error) {
+      response = response.error + `\n\n[Click here to start](https://github.com/${ossRepo})`;
+      return [response, false];
+    }
+}
+
+async function handleQ3Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
+    const correctAnswers = ["b", "c", "c", "b", "b", "d"]; 
+    const userAnswerString = context.payload.comment.body;
+    
+    try {
+      const { correctAnswersNumber, feedback } = validateAnswers(userAnswerString, correctAnswers);
+  
+      completeTask(user_data, "Q3", "Quiz", context, db);
+  
+      response = response.success + 
+        `Number of Correct Answers: ${correctAnswersNumber}` + 
+        `\n\nFeedback:\n${feedback.join('')}`;
+
+      return [response, true];
+    } catch (error) {
+      response = response.error + `\n\n[Click here to start](https://github.com/${ossRepo})`;
+      return [response, false];
+    }
+}
+
 // export quest functions as dictionary
 export const taskMapping = {
     Q0: {
@@ -194,16 +253,19 @@ export const taskMapping = {
         T3: handleQ1T3,
         T4: handleQ1T4,
         T5: handleQ1T5,
+        Quiz: handleQ1Quiz,
     },
     Q2: {
         T1: handleQ2T1,
         T2: handleQ2T2,
         T3: handleQ2T3,
         T4: handleQ2T4,
+        Quiz: handleQ2Quiz,
     },
     Q3: {
         T1: handleQ3T1,
         T2: handleQ3T2,
         T3: handleQ3T3,
+        Quiz: handleQ3Quiz,
     }
 };

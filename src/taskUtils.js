@@ -415,6 +415,36 @@ async function checkAssignee(repo, issueNum, user, context) {
     }
 }
 
+function validateQuizzAnswers(userAnswerString, correctAnswers) {
+    const match = userAnswerString.match(/\[([A-Z,\s]+)\]/i);
+    
+    if (match) {
+        userAnswers = match[1].split(',').map(answer => answer.trim().toLowerCase());
+    } else {
+      throw new Error("Invalid input format");
+    }
+
+    const lowerCaseCorrectAnswers = correctAnswers.map(answer => answer.toLowerCase());
+  
+    if (userAnswers.length !== lowerCaseCorrectAnswers.length) {
+      throw new Error("Arrays must be of the same length");
+    }
+
+    let correctAnswersNumber = 0
+
+    const feedback = userAnswers.map((answer, index) => {
+        const isCorrect = answer === lowerCaseCorrectAnswers[index];
+        
+        if (isCorrect) {
+            correctAnswersNumber += 1;
+        }
+        
+        return `Question ${index + 1}: ${isCorrect ? "Correct" : "Wrong"}. Answer: ${correctAnswers[index]}. \n`;
+    });
+    
+    return {correctAnswersNumber, feedback};
+}
+
 export const utils = {
     getIssueCount,
     isFirstAssignee,
@@ -428,5 +458,6 @@ export const utils = {
     openIssues,
     issueClosed,
     checkAssignee,
-    getTopContributor
+    getTopContributor,
+    validateQuizzAnswers
 };
