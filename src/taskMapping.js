@@ -190,7 +190,7 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
     
     
     try {
-      const { correctAnswersNumber, feedback } = utils.validateQuizzAnswers(userAnswerString, correctAnswers);
+      const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   
       completeTask(user_data, "Q1", "Quiz", context, db);
   
@@ -200,6 +200,7 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
 
       return [response, true];
     } catch (error) {
+      console.log(error);
       response = response.error + `\n\n[Click here to start](https://github.com/${ossRepo})`;
       return [response, false];
     }

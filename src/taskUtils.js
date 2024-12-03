@@ -417,7 +417,8 @@ async function checkAssignee(repo, issueNum, user, context) {
 
 function validateAnswers(userAnswerString, correctAnswers) {
     const match = userAnswerString.match(/\[([A-Z,\s]+)\]/i);
-    
+    var userAnswers = {};
+
     if (match) {
         userAnswers = match[1].split(',').map(answer => answer.trim().toLowerCase());
     } else {
