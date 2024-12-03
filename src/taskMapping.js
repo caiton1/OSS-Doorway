@@ -187,7 +187,7 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
     const userAnswerString = context.payload.comment.body;
     
     try {
-      const { correctAnswersNumber, feedback } = validateAnswers(userAnswerString, correctAnswers);
+      const { correctAnswersNumber, feedback } = validateQuizzAnswers(userAnswerString, correctAnswers);
   
       completeTask(user_data, "Q1", "Quiz", context, db);
   
@@ -207,7 +207,7 @@ async function handleQ2Quiz(user_data, user, context, ossRepo, response, selecte
     const userAnswerString = context.payload.comment.body;
     
     try {
-      const { correctAnswersNumber, feedback } = validateAnswers(userAnswerString, correctAnswers);
+      const { correctAnswersNumber, feedback } = validateQuizzAnswers(userAnswerString, correctAnswers);
   
       completeTask(user_data, "Q2", "Quiz", context, db);
   
@@ -227,7 +227,7 @@ async function handleQ3Quiz(user_data, user, context, ossRepo, response, selecte
     const userAnswerString = context.payload.comment.body;
     
     try {
-      const { correctAnswersNumber, feedback } = validateAnswers(userAnswerString, correctAnswers);
+      const { correctAnswersNumber, feedback } = validateQuizzAnswers(userAnswerString, correctAnswers);
   
       completeTask(user_data, "Q3", "Quiz", context, db);
   
