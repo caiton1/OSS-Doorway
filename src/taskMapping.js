@@ -182,12 +182,14 @@ async function handleQ3T3(user_data, user, context, ossRepo, response, selectedI
     return [response, false];
 }
 
+// QUIZES
+
 async function handleQ1Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    const correctAnswers = ["b", "a", "c", "b", "d", "c"]; 
+    const correctAnswers = ["b", "a", "c", "b", "d"]; 
     const userAnswerString = context.payload.comment.body;
     
     try {
-      const { correctAnswersNumber, feedback } = validateQuizzAnswers(userAnswerString, correctAnswers);
+      const { correctAnswersNumber, feedback } = utils.validateQuizzAnswers(userAnswerString, correctAnswers);
   
       completeTask(user_data, "Q1", "Quiz", context, db);
   
@@ -207,7 +209,7 @@ async function handleQ2Quiz(user_data, user, context, ossRepo, response, selecte
     const userAnswerString = context.payload.comment.body;
     
     try {
-      const { correctAnswersNumber, feedback } = validateQuizzAnswers(userAnswerString, correctAnswers);
+      const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   
       completeTask(user_data, "Q2", "Quiz", context, db);
   
@@ -227,7 +229,7 @@ async function handleQ3Quiz(user_data, user, context, ossRepo, response, selecte
     const userAnswerString = context.payload.comment.body;
     
     try {
-      const { correctAnswersNumber, feedback } = validateQuizzAnswers(userAnswerString, correctAnswers);
+      const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   
       completeTask(user_data, "Q3", "Quiz", context, db);
   

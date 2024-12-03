@@ -415,7 +415,7 @@ async function checkAssignee(repo, issueNum, user, context) {
     }
 }
 
-function validateQuizzAnswers(userAnswerString, correctAnswers) {
+function validateAnswers(userAnswerString, correctAnswers) {
     const match = userAnswerString.match(/\[([A-Z,\s]+)\]/i);
     
     if (match) {
@@ -459,5 +459,5 @@ export const utils = {
     issueClosed,
     checkAssignee,
     getTopContributor,
-    validateQuizzAnswers
+    validateAnswers
 };
