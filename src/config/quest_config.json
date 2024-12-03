@@ -41,6 +41,11 @@
       "desc": "Explore the contributors",
       "points": 20,
       "xp": 20
+    },
+    "Quiz": {
+      "desc": "Quiz",
+      "points": 0,
+      "xp": 0
     }
   },
   "Q2": {
@@ -67,6 +72,11 @@
       "desc": "Mention a contributor that has most recently been active in the project to help you to solve the issue",
       "points": 25,
       "xp": 25
+    },
+    "Quiz": {
+      "desc": "Quiz",
+      "points": 0,
+      "xp": 0
     }
   },
   "Q3": {
@@ -88,6 +98,11 @@
       "desc": "Close the issue",
       "points": 25,
       "xp": 25
+    },
+    "Quiz": {
+      "desc": "Quiz",
+      "points": 0,
+      "xp": 0
     }
   }
 }
