@@ -188,6 +188,7 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
     const correctAnswers = ["b", "a", "c", "b", "d"]; 
     const userAnswerString = context.payload.comment.body;
     
+    
     try {
       const { correctAnswersNumber, feedback } = utils.validateQuizzAnswers(userAnswerString, correctAnswers);
   
