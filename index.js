@@ -82,7 +82,7 @@ export default (app) => {
 
 async function connectToDatabase() {
   try {
-    await mongoose.connect(`${process.env.URI}/${process.env.DB_NAME}`, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(`${process.env.URI}/${process.env.DB_NAME}`);
     console.log("Database connected successfully");
   } catch (err) {
     console.error("Database connection error:", err);

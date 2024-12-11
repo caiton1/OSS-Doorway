@@ -20,7 +20,7 @@ const mapRepoLink = quests.map_repo_link;
 //////////////////////////////////
 
 // Will also start the first task associated with quest
-function acceptQuest(context, user_data, quest) {
+async function acceptQuest(context, user_data, quest) {
   const { owner, repo } = context.repo();
   try {
     // Read in available qeusts and validate requested quest
@@ -50,8 +50,10 @@ function acceptQuest(context, user_data, quest) {
           };
           user_data.completion = 0;
         }
-
-        createQuestEnvironment(user_data, quest, "T1", context);
+        // initial start
+        if(quest === 'Q0'){
+          await createQuestEnvironment(user_data, quest, "T1", context);
+        }
         return true;
       } else {
         return false;
@@ -101,7 +103,7 @@ export async function completeTask(user_data, quest, task, context, db) {
         // last task
       } else {
         user_data.current.task = null;
-        completeQuest(user_data, quest, context);
+        await completeQuest(user_data, quest, context);
       }
 
       context.octokit.issues.update({
@@ -111,17 +113,16 @@ export async function completeTask(user_data, quest, task, context, db) {
         state: "closed",
       });
 
+      // TODO do not create environemnt when quest is done
       if (user_data.current && user_data.current.task != null) {
-        createQuestEnvironment(
+        await createQuestEnvironment(
           user_data,
-          quest,
+          user_data.current.quest,
           user_data.current.task,
           context
         );
       }
 
-
-      //db.updateData(user_data); // refresh points
 
       await updateReadme(owner, repo, context, user_data, db);
       return true;
@@ -133,7 +134,7 @@ export async function completeTask(user_data, quest, task, context, db) {
   }
 }
 
-function completeQuest(user_data, quest, context) {
+async function completeQuest(user_data, quest, context) {
   try {
     // ASSUMES that user_data.accepted exsists (pre existing check in parent function)
     // all tasks completed
@@ -155,13 +156,13 @@ function completeQuest(user_data, quest, context) {
 
       // hardcoded quest logic (its a small prototype 👀)
       if (quest === "Q0") {
-        acceptQuest(context, user_data, "Q1");
+        await acceptQuest(context, user_data, "Q1");
       }
-      if (quest === "Q1") {
-        acceptQuest(context, user_data, "Q2");
+      else if (quest === "Q1") {
+        await acceptQuest(context, user_data, "Q2");
       }
-      if (quest === "Q2") {
-        acceptQuest(context, user_data, "Q3");
+      else if (quest === "Q2") {
+        await acceptQuest(context, user_data, "Q3");
       }
 
       return true; // Quest successfully completed
@@ -216,6 +217,7 @@ async function createQuestEnvironment(user_data, quest, task, context) {
     console.error("Error creating new issue: ", error);
   }
 }
+
 async function giveHint(user_data, context, db) {
   // user_data.current.(quest, hint)
   const quest = user_data.current.quest;
@@ -720,7 +722,6 @@ async function createRepos(context, org, users, db) {
 
   for (const username of users) {
     try {
-      console.log("creating user");
       // user exists on GitHub and not on database
       const userResponse = await context.octokit.users.getByUsername({
         username,
@@ -742,8 +743,6 @@ async function createRepos(context, org, users, db) {
           username,
           permission: "triage",
         });
-        console.log(ossRepoData[0]);
-        console.log(ossRepoData[1]);
 
         // invite user to OSS Repo NOTE: bot will need access to OSS repo to create these issues and invite user
         await context.octokit.repos.addCollaborator({
