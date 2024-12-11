@@ -1,6 +1,6 @@
 {
   "oss_repo":"probot-test-org/test-repo",
-  "map_repo_link":"https://github.com/RESHAPELab/OSS-Doorway/blob/main/map",
+  "map_repo_link":"https://github.com/caiton1/OSS-Doorway/tree/main/map",
   "Q0": {
     "metadata": {
       "title": "Configuring your environment",
