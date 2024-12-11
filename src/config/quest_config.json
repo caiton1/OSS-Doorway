@@ -42,7 +42,7 @@
       "points": 20,
       "xp": 20
     },
-    "Quiz": {
+    "T6": {
       "desc": "Quiz",
       "points": 0,
       "xp": 0
@@ -73,7 +73,7 @@
       "points": 25,
       "xp": 25
     },
-    "Quiz": {
+    "T5": {
       "desc": "Quiz",
       "points": 0,
       "xp": 0
@@ -99,7 +99,7 @@
       "points": 25,
       "xp": 25
     },
-    "Quiz": {
+    "T4": {
       "desc": "Quiz",
       "points": 0,
       "xp": 0

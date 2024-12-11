@@ -20,7 +20,8 @@ const mapRepoLink = quests.map_repo_link;
 //////////////////////////////////
 
 // Will also start the first task associated with quest
-function acceptQuest(context, user_data, quest) {
+async function acceptQuest(context, user_data, quest) {
+  console.log("accepting quest: ", quest);
   const { owner, repo } = context.repo();
   try {
     // Read in available qeusts and validate requested quest
@@ -50,8 +51,10 @@ function acceptQuest(context, user_data, quest) {
           };
           user_data.completion = 0;
         }
-
-        createQuestEnvironment(user_data, quest, "T1", context);
+        // initial start
+        if(quest === 'Q0'){
+          await createQuestEnvironment(user_data, quest, "T1", context);
+        }
         return true;
       } else {
         return false;
@@ -66,6 +69,7 @@ function acceptQuest(context, user_data, quest) {
 }
 
 export async function completeTask(user_data, quest, task, context, db) {
+  console.log("completeing task", quest, task);
   const { owner, repo } = context.repo();
   try {
     const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
@@ -101,7 +105,8 @@ export async function completeTask(user_data, quest, task, context, db) {
         // last task
       } else {
         user_data.current.task = null;
-        completeQuest(user_data, quest, context);
+        console.log("calling comeplete Quest!")
+        await completeQuest(user_data, quest, context);
       }
 
       context.octokit.issues.update({
@@ -111,17 +116,18 @@ export async function completeTask(user_data, quest, task, context, db) {
         state: "closed",
       });
 
+      // TODO do not create environemnt when quest is done
       if (user_data.current && user_data.current.task != null) {
-        createQuestEnvironment(
+        console.log("new task current: ", user_data.current, quest);
+        console.log("calling create quest environment in complete task")
+        await createQuestEnvironment(
           user_data,
-          quest,
+          user_data.current.quest,
           user_data.current.task,
           context
         );
       }
 
-
-      //db.updateData(user_data); // refresh points
 
       await updateReadme(owner, repo, context, user_data, db);
       return true;
@@ -133,7 +139,8 @@ export async function completeTask(user_data, quest, task, context, db) {
   }
 }
 
-function completeQuest(user_data, quest, context) {
+async function completeQuest(user_data, quest, context) {
+  console.log("completing quest: ", quest);
   try {
     // ASSUMES that user_data.accepted exsists (pre existing check in parent function)
     // all tasks completed
@@ -155,13 +162,13 @@ function completeQuest(user_data, quest, context) {
 
       // hardcoded quest logic (its a small prototype 👀)
       if (quest === "Q0") {
-        acceptQuest(context, user_data, "Q1");
+        await acceptQuest(context, user_data, "Q1");
       }
-      if (quest === "Q1") {
-        acceptQuest(context, user_data, "Q2");
+      else if (quest === "Q1") {
+        await acceptQuest(context, user_data, "Q2");
       }
-      if (quest === "Q2") {
-        acceptQuest(context, user_data, "Q3");
+      else if (quest === "Q2") {
+        await acceptQuest(context, user_data, "Q3");
       }
 
       return true; // Quest successfully completed
@@ -174,6 +181,7 @@ function completeQuest(user_data, quest, context) {
 
 // geenrates "quest" by generating a github issues with the quest details
 async function createQuestEnvironment(user_data, quest, task, context) {
+  console.log("creating environment for ", quest, task);
   const { owner, repo } = context.repo();
   var response = questResponse;
   var title = quests;
@@ -216,6 +224,7 @@ async function createQuestEnvironment(user_data, quest, task, context) {
     console.error("Error creating new issue: ", error);
   }
 }
+
 async function giveHint(user_data, context, db) {
   // user_data.current.(quest, hint)
   const quest = user_data.current.quest;
