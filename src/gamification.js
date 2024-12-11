@@ -21,7 +21,6 @@ const mapRepoLink = quests.map_repo_link;
 
 // Will also start the first task associated with quest
 async function acceptQuest(context, user_data, quest) {
-  console.log("accepting quest: ", quest);
   const { owner, repo } = context.repo();
   try {
     // Read in available qeusts and validate requested quest
@@ -69,7 +68,6 @@ async function acceptQuest(context, user_data, quest) {
 }
 
 export async function completeTask(user_data, quest, task, context, db) {
-  console.log("completeing task", quest, task);
   const { owner, repo } = context.repo();
   try {
     const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
@@ -105,7 +103,6 @@ export async function completeTask(user_data, quest, task, context, db) {
         // last task
       } else {
         user_data.current.task = null;
-        console.log("calling comeplete Quest!")
         await completeQuest(user_data, quest, context);
       }
 
@@ -118,8 +115,6 @@ export async function completeTask(user_data, quest, task, context, db) {
 
       // TODO do not create environemnt when quest is done
       if (user_data.current && user_data.current.task != null) {
-        console.log("new task current: ", user_data.current, quest);
-        console.log("calling create quest environment in complete task")
         await createQuestEnvironment(
           user_data,
           user_data.current.quest,
@@ -140,7 +135,6 @@ export async function completeTask(user_data, quest, task, context, db) {
 }
 
 async function completeQuest(user_data, quest, context) {
-  console.log("completing quest: ", quest);
   try {
     // ASSUMES that user_data.accepted exsists (pre existing check in parent function)
     // all tasks completed
@@ -181,7 +175,6 @@ async function completeQuest(user_data, quest, context) {
 
 // geenrates "quest" by generating a github issues with the quest details
 async function createQuestEnvironment(user_data, quest, task, context) {
-  console.log("creating environment for ", quest, task);
   const { owner, repo } = context.repo();
   var response = questResponse;
   var title = quests;
@@ -729,7 +722,6 @@ async function createRepos(context, org, users, db) {
 
   for (const username of users) {
     try {
-      console.log("creating user");
       // user exists on GitHub and not on database
       const userResponse = await context.octokit.users.getByUsername({
         username,
@@ -751,8 +743,6 @@ async function createRepos(context, org, users, db) {
           username,
           permission: "triage",
         });
-        console.log(ossRepoData[0]);
-        console.log(ossRepoData[1]);
 
         // invite user to OSS Repo NOTE: bot will need access to OSS repo to create these issues and invite user
         await context.octokit.repos.addCollaborator({
