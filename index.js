@@ -6,12 +6,14 @@ import { gameFunction } from "./src/gamification.js";
 import { MongoDB } from "./src/database.js";
 import mongoose from "mongoose";
 import fs from "fs";
+import LLM from "./src/llm.js"
 const responseFilePath = "./src/config/response.json";
 const responses = JSON.parse(
   fs.readFileSync(responseFilePath, "utf-8")
 ).responses;
 const db = new MongoDB();
 await db.connect();
+const llmInstance = new LLM();
 
 export default (app) => {
   // TODO: update to reflect new command structure
@@ -32,6 +34,9 @@ export default (app) => {
     return;
   });
 
+  llmInstance.add()
+  .then(result => console.log(result))
+  .catch(error => console.error(error));
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
     // in orgs, the org is the "owner" of the repo

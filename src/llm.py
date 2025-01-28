@@ -1,5 +1,6 @@
 import sys
 import dspy
+import os
 api_key = os.getenv('OPENAI_API_KEY')
 
 def add(a, b):
