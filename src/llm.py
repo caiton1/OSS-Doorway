@@ -3,9 +3,6 @@ import dspy
 import os
 api_key = os.getenv('OPENAI_API_KEY')
 
-def add(a, b):
-    return int(a) + int(b)
-
 lm = dspy.LM('openai/gpt-4o-mini', api_key=api_key)
 dspy.configure(lm=lm)
 
