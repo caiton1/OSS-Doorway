@@ -6,9 +6,16 @@ api_key = os.getenv('OPENAI_API_KEY')
 lm = dspy.LM('openai/gpt-4o-mini', api_key=api_key)
 dspy.configure(lm=lm)
 
+def addToResponse(hint):
+    qa = dspy.ChainOfThought('question -> answer: str')
+    response = qa(question=f"""Can you expand on this text to make it more
+        exciting:{hint}""")
+    return response.answer
+
 if __name__ == '__main__':
-    num1,num2 = sys.argv[1], sys.argv[2]
-    qa = dspy.ChainOfThought('question -> answer: int')
-    response = qa(question=f"What is the sum of {num1} and {num2}")
-    print(response.answer)
+    if len(sys.argv) < 2:
+        print("Python scipt has too many args")
+    else:
+        hint = sys.argv[1]
+        print(addToResponse(hint))
 
