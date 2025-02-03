@@ -3,10 +3,8 @@ import { exec } from 'child_process';
 export default class LLM {
   async add() {
     return new Promise((resolve, reject) => {
-      exec('python3 ./src/llm.py "use cooling to help"', (error, stdout, stderr) => {
+      exec('python3 ./src/llm.py "which fruit has trees ?" "apples" "apples" ', (error, stdout, stderr) => {
         if (error) {
-          console.error(`Error: ${error.message}`);
-          reject(error);
           return;
         }
         
