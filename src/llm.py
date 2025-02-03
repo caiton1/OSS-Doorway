@@ -14,7 +14,7 @@ def addToResponse(question,right,real):
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        print("Python scipt has too many args")
+        print("Python scipt has incorrect args")
     else:
         print(addToResponse(sys.argv[1],sys.argv[2],sys.argv[3]))
 
