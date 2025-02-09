@@ -33,10 +33,7 @@ export default (app) => {
 
     return;
   });
-
-  llmInstance.add()
-  .then(result => console.log(result))
-  .catch(error => console.error(error));
+  run();
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
     // in orgs, the org is the "owner" of the repo
@@ -95,6 +92,16 @@ async function connectToDatabase() {
   }
 }
 
+async function run() {
+  try {
+    const result = await llmInstance.add(); 
+    console.log(result); 
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+run(); // Call the async function
 // match and break down / command
 async function parseCommand(context, org, comment) {
   const regex = /^(\/(new_user|del_user|del_repo|reset_repo|create_repos))(\s+(.+))?$/;
