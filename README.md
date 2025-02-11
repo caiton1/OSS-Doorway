@@ -95,6 +95,13 @@ docker run -it \
 12. Setup complete, keep the server running while using/developin).
 ---
 
+### Populating the database (Quests and Hints)
+The bot now relies on having quests and hints stored in the database, if this is a new database, there is a sample hint and quest dataset included as config files.
+1. run ```node ./src/config/uploadQuestConfig.js```
+2. run ```node ./src/config/uploadHintConfig.js```
+
+---
+
 ### Commands and How to Use
 - To interact with the bot, create a issue in the issues tab of your private repo, this is the main method of communication with the bot
   
