@@ -14,6 +14,8 @@ OSSDoorway quests and activities are designed to be accessible and inclusive, en
 
 
 ## Setup:
+***NOTE: Under heavy use you will want to use a different GitHub account as this will mess up or pad your commit history.***
+
 ### Organization
 1. As of now, the bot expects to take control of an organization, to create one, go [here](https://github.com/organizations/plan) and create a free organization
 2. On the setup, you may want to consider inviting other developers when prompted (make them org owners if you want them to have admin access to bot commands )
