@@ -8,7 +8,7 @@ OSSDoorway quests and activities are designed to be accessible and inclusive, en
 
 
 ## Requirnments:
-- [Node.js 22+](https://nodejs.org/en/download) OR Docker
+- [Node.js 22+](https://nodejs.org/en/download) AND/OR Docker
 - npm 10+
 - MongoDB
 
