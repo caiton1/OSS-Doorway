@@ -102,7 +102,7 @@ docker run -it \
 ---
 
 ### Populating the database
-The bot now relies on having quests and hints stored in the database, if this is a new database, there is a sample hint and quest dataset included as config files.
+The bot now relies on having quests and hints stored in the database, if this is a new database, there is a sample hint and quest dataset included as config files. During the first time set up, youll want to run these after you have configured probot and it's .env files.
 1. run ```node ./src/config/uploadQuestConfig.js```
 2. run ```node ./src/config/uploadHintConfig.js```
 
