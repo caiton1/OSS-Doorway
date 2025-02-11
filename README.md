@@ -5,8 +5,6 @@ OSSDoorway is a free, open-source platform designed to engage users in learning 
 OSSDoorway quests and activities are designed to be accessible and inclusive, ensuring that users from diverse backgrounds and skill levels can benefit from the platform. Join OSSDoorway today and start your journey towards becoming a proficient OSS contributor!
 
 ---
-
-
 ## Requirements:
 - [Node.js 22+](https://nodejs.org/en/download) AND/OR Docker
 - npm 10+
@@ -15,6 +13,14 @@ OSSDoorway quests and activities are designed to be accessible and inclusive, en
 
 ## Setup:
 ***NOTE: Under heavy use you will want to use a different GitHub account as this will mess up or pad your commit history.***
+
+### Sections:
+ - [Organization](#organization)
+ - [Database](#database)
+ - [Probot setup](#probot-setup)
+ - [Populating the database](#populating-the-database)
+ - [Commands and How to Use](#commands-and-how-to-use)
+---
 
 ### Organization
 1. As of now, the bot expects to take control of an organization, to create one, go [here](https://github.com/organizations/plan) and create a free organization
@@ -95,7 +101,7 @@ docker run -it \
 12. Setup complete, keep the server running while using/developin).
 ---
 
-### Populating the database (Quests and Hints)
+### Populating the database
 The bot now relies on having quests and hints stored in the database, if this is a new database, there is a sample hint and quest dataset included as config files.
 1. run ```node ./src/config/uploadQuestConfig.js```
 2. run ```node ./src/config/uploadHintConfig.js```
