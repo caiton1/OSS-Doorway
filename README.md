@@ -19,6 +19,7 @@ OSSDoorway quests and activities are designed to be accessible and inclusive, en
 2. On the setup, you may want to consider inviting other developers when prompted (make them org owners if you want them to have admin access to bot commands )
 3. Now youll want to create a two repos, a public "open source" repo and a private repo to run bot commands to set up your users' environments. The bot will want the repo link later, so for instance, we want ```caiton1/OSS-Doorway``` from ```https://github.com/caiton1/OSS-Doorway```
 4. Organization setup complete
+---
 
 ### Database
 First, you're going to need to setup a MongoDB database for the bot to store user progress in. For this project I use the free tier of MongoDB Atlas.
@@ -45,6 +46,8 @@ First, you're going to need to setup a MongoDB database for the bot to store use
 11. Setup complete, the URI link will be used in the [Probot](#probot-setup) section
 
 ***NOTE:*** For simplicity, I am using the admin account to connect to the database, in a production environment, you should NOT do this and should set up a separate least privalege account to access the database.
+
+---
 
 ### Probot setup
 1. Clone or download the repo
@@ -86,7 +89,8 @@ docker run -it --rm \
 11. Fill in the OSS repo that you created from step 4 organization [earlier](#organization)
 
 12. Setup complete, keep the server running while using/developing
-    
+---
+
 ### Commands and How to Use
 - To interact with the bot, create a issue in the issues tab of your private repo, this is the main method of communication with the bot
   
