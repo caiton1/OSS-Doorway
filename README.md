@@ -19,7 +19,7 @@ OSSDoorway quests and activities are designed to be accessible and inclusive, en
 ### Organization
 1. As of now, the bot expects to take control of an organization, to create one, go [here](https://github.com/organizations/plan) and create a free organization
 2. On the setup, you may want to consider inviting other developers when prompted (make them org owners if you want them to have admin access to bot commands )
-3. Now youll want to create a two repos, a public "open source" repo and a private repo to run bot commands to set up your users' environments. The bot will want the repo link later, so for instance, we want ```caiton1/OSS-Doorway``` from ```https://github.com/caiton1/OSS-Doorway```
+3. Now youll want to create a two repos, a public "open source" repo (make sure to click add readme, otherwise github API may not work) and a private repo to run bot commands to set up your users' environments. The bot will want the repo link later, so for instance, we want ```caiton1/OSS-Doorway``` from ```https://github.com/caiton1/OSS-Doorway```
 4. Organization setup complete
 ---
 
