@@ -29,32 +29,32 @@ First, you're going to need to setup a MongoDB database for the bot to store use
 **[Cloud MongoDB](https://account.mongodb.com/)**
 1. Sign up or login to account
 
-2. If you are a new Atlas user, complete setup questions. If not you can skip the database section  and move on to [Probot](#probot-setup), you will need your URI to connect to the database
+2. If you are a new Atlas user, complete setup questions. If not you can skip the database section  and move on to [Probot](#probot-setup), you will need your URI to connect to the database.
 <img src="./assets/clusteroption.png" width="800"/>
 
 4. On initial setup, choose the free option and click create deployment.
 <img src="./assets/usercreation.png" width="400"/>
 
-6. Next you will need to create an atlas admin user (make sure to remember password and username!)
+6. Next you will need to create an atlas admin user (make sure to remember password and username!).
 
-7. Click create database user
+7. Click create database user.
 
-8. Next, click choose connection method (or the connect buttonon the cluster dashboard) and click drivers under *"Connect to your application"*
+8. Next, click choose connection method (or the connect buttonon the cluster dashboard) and click drivers under *"Connect to your application"*.
 
-<img src="./assets/driver.png" width="400"/>
+<img src="./assets/driver.png" width="600"/>
 
-10. Save the link as shown above, replacing <db_password> with the password you created earlier
+10. Save the link as shown above, replacing <db_password> with the password you created earlier.
 
-11. Setup complete, the URI link will be used in the [Probot](#probot-setup) section
+11. Setup complete, the URI link will be used in the [Probot](#probot-setup) section.
 
 ***NOTE:*** For simplicity, I am using the admin account to connect to the database, in a production environment, you should NOT do this and should set up a separate least privalege account to access the database.
 
 ---
 
 ### Probot setup
-1. Clone or download the repo
+1. Clone or download the repo.
 
-2. install dependencies (manually or with docker)
+2. install dependencies (manually or with docker).
    - Manually:
      1. run ```npm install```
      2. run ```npm start```
@@ -70,27 +70,27 @@ docker run -it --rm \
 ```
   - -it for interactive terminal, -d for detached mode
 
-3. Go to the provided link from terminal while running server, usually [http://localhost:3000](http://localhost:3000)
+3. Go to the provided link from terminal while running server, usually [http://localhost:3000](http://localhost:3000).
 
 <img src="./assets/appregister.png" width="400"/>
 
-4. Click on register app 
+4. Click on register app.
 
-5. Then install it to your [organization](#organization) that you created
+5. Then install it to your [organization](#organization) that you created.
 
-6. Make sure it has access to all repositories in organization and click install
+6. Make sure it has access to all repositories in organization and click install.
 
-7. Kill the server and then re-run it from either npm start or the docker command above
+7. Kill the server and then re-run it from either npm start or the docker command above.
 
-8. If not already in .env file, it will ask for URI, DB_NAME and OSS_REPO
+8. If not already in .env file, it will ask for URI, DB_NAME and OSS_REPO.
 
-9. Fill in using the URI that you saved from database setup step 10 [earlier](#database)
+9. Fill in using the URI that you saved from database setup step 10 [earlier](#database).
 
-10. Fill in the database/collection name you want
+10. Fill in the database/collection name you want.
 
-11. Fill in the OSS repo that you created from step 4 organization [earlier](#organization)
+11. Fill in the OSS repo that you created from step 4 organization [earlier](#organization).
 
-12. Setup complete, keep the server running while using/developing
+12. Setup complete, keep the server running while using/developin).
 ---
 
 ### Commands and How to Use
@@ -103,11 +103,11 @@ docker run -it --rm \
 
 **To set up your first repo:**
 
-1. In your created organization, go to your private repo that you designated for bot commands and create a new issue while running the server
+1. In your created organization, go to your private repo that you designated for bot commands and create a new issue while running the server.
 
-2. It will show you commands that you can do
+2. It will show you commands that you can do.
 
-3. To get started, you can type ```/create_repos <some valid github username>``` and it will create a user in database and create a repo for the user in the organization (will take a few seconds to complete)
+3. To get started, you can type ```/create_repos <some valid github username>``` and it will create a user in database and create a repo for the user in the organization (will take a few seconds to complete).
 
-4. The invited user should recieve an invite to the bot-created private repo, which will be named after the user
+4. The invited user should recieve an invite to the bot-created private repo, which will be named after the user.
 
