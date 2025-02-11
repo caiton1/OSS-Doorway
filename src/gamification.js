@@ -235,7 +235,7 @@ async function giveHint(user_data, context, db) {
     response = "There are no more hints!";
   }
   else {
-    //TODO: take response and added the LLM to it 
+    //TODO: take response and added the LLM to it (reword the hint) 
     response += `${hintResponse}`;
     user_data.points -= 5; // arbitrary for now, but stored in DB
     user_data.accepted[quest][task].hints += 1;

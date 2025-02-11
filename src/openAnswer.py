@@ -3,6 +3,7 @@ import dspy
 import os
 import json
 import chromadb
+
 api_key = os.getenv('OPENAI_API_KEY')
 
 lm = dspy.LM('openai/gpt-4o-mini', api_key=api_key)
@@ -35,7 +36,7 @@ class RAG(dspy.Module):
         return self.respond(context=context, question=question)
 
 if __name__ == '__main__':
-    json_file = "qa_data.json"  
+    json_file = "../config/qa_data.json"  
     qa_pairs = load_json(json_file)
     add_qa_pairs(qa_pairs)
     rag_model = RAG(retrieve)

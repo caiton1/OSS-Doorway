@@ -33,7 +33,7 @@ export default (app) => {
 
     return;
   });
-  run();
+  console.log(run());
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
     // in orgs, the org is the "owner" of the repo
@@ -92,16 +92,26 @@ async function connectToDatabase() {
   }
 }
 
-async function run() {
+async function runRAG() {
   try {
-    const result = await llmInstance.add(); 
-    console.log(result); 
+    const result = await llmInstance.validateAnswer("what kind of trees","red","blue"); 
+    return result;
   } catch (error) {
     console.error(error);
   }
 }
 
-run(); // Call the async function
+async function runHint() {
+  try {
+    const result = await llmInstance.rewordHint("heat helps with melting"); 
+    return result;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+
+// Call the async function
 // match and break down / command
 async function parseCommand(context, org, comment) {
   const regex = /^(\/(new_user|del_user|del_repo|reset_repo|create_repos))(\s+(.+))?$/;
