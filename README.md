@@ -64,7 +64,7 @@ First, you're going to need to setup a MongoDB database for the bot to store use
      1. build docker ```docker build -t oss-dev .```
      2. run docker, binding to project root directory for more seemless development
 ```
-docker run -it --rm \
+docker run -it \
   -v "$(pwd)":/app/OSS-doorway \
   -v "$(pwd)/.env":/app/OSS-doorway/.env \
   -p 3000:3000 \
