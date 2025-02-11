@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import prompt from "prompt-sync";
-import { HintModel } from "./models/HintModel.js"; // Correct import
+import { HintModel } from "../models/HintModel.js"; // Correct import
 
 
 dotenv.config();

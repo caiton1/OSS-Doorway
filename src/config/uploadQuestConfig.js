@@ -20,67 +20,91 @@ async function connectToDatabase() {
 
 // parse
 async function parseAndUploadData() {
-    const questConfig = JSON.parse(fs.readFileSync("./src/config/quest_config.json", "utf-8"));
-    const responseConfig = JSON.parse(fs.readFileSync("./src/config/response.json", "utf-8"));
-  
-    for (const questKey in questConfig) {
-      if (questKey == "oss_repo" || questKey == "map_repo_link"){
-        continue;
+  const questConfig = JSON.parse(fs.readFileSync("./src/config/quest_config.json", "utf-8"));
+  const responseConfig = JSON.parse(fs.readFileSync("./src/config/response.json", "utf-8"));
+
+  for (const questKey in questConfig) {
+      if (questKey === "oss_repo" || questKey === "map_repo_link") {
+          continue;
       }
       console.log(questKey);
       const questData = questConfig[questKey];
-      // find prereq by quest ID
+
+      // Find prerequisite by quest ID
       let prerequisiteId = null;
       if (questData.metadata.prerequisite) {
-        const prerequisiteQuest = await Quest.findOne({ questKey: questData.metadata.prerequisite });
-        if (prerequisiteQuest) {
-          prerequisiteId = prerequisiteQuest._id;
-        } else {
-          console.warn(`Prerequisite quest titled '${questData.metadata.prerequisite}' not found.`);
-        }
-      }
-  
-      const quest = new Quest({
-        questKey: questKey,
-        questTitle: questData.metadata.title,
-        prerequisite: prerequisiteId ? [prerequisiteId] : [], 
-      });
-  
-      await quest.save();
-  
-      for (const taskKey in questData) {
-        if (taskKey.startsWith("T")) { // ensure it's a task
-          const taskData = questData[taskKey];
-          const responseData = responseConfig[questKey]?.[taskKey];
-  
-          if (responseData) {
-            const task = new Task({
-              taskKey: taskKey,
-              taskTitle: taskData.desc,
-              questId: quest._id,
-              desc: taskData.desc,
-              points: taskData.points,
-              xp: taskData.xp,
-              responses: {
-                accept: responseData.accept,
-                error: responseData.error,
-                success: responseData.success
-              }
-            });
-  
-            await task.save();
-            quest.tasks.push(task._id); // add task ID to quest
+          const prerequisiteQuest = await Quest.findOne({ questKey: questData.metadata.prerequisite });
+          if (prerequisiteQuest) {
+              prerequisiteId = prerequisiteQuest._id;
           } else {
-            console.warn(`No response data found for ${questKey} ${taskKey}`);
+              console.warn(`Prerequisite quest titled '${questData.metadata.prerequisite}' not found.`);
           }
-        }
       }
-  
-      await quest.save();
-    }
-  
-    console.log("Data parsing and upload completed.");
+
+      // Create Quest document
+      let quest;
+      try {
+          quest = new Quest({
+              questKey: questKey,
+              questTitle: questData.metadata.title,
+              prerequisite: prerequisiteId ? [prerequisiteId] : [],
+          });
+          await quest.save();
+      } catch (err) {
+          if (err.code === 11000) {
+              console.warn(`Duplicate Quest detected: ${questKey}, skipping.`);
+              quest = await Quest.findOne({ questKey: questKey }); // Retrieve existing quest
+          } else {
+              throw err;
+          }
+      }
+
+      // Process Tasks
+      for (const taskKey in questData) {
+          if (taskKey.startsWith("T")) { // Ensure it's a task
+              const taskData = questData[taskKey];
+              const responseData = responseConfig[questKey]?.[taskKey];
+
+              if (responseData) {
+                  try {
+                      const task = new Task({
+                          taskKey: taskKey,
+                          taskTitle: taskData.desc,
+                          questId: quest._id,
+                          desc: taskData.desc,
+                          points: taskData.points,
+                          xp: taskData.xp,
+                          responses: {
+                              accept: responseData.accept,
+                              error: responseData.error,
+                              success: responseData.success
+                          }
+                      });
+                      await task.save();
+                      quest.tasks.push(task._id); // Add task ID to quest
+                  } catch (err) {
+                      if (err.code === 11000) {
+                          console.warn(`Duplicate Task detected: ${taskKey}, skipping.`);
+                      } else {
+                          throw err;
+                      }
+                  }
+              } else {
+                  console.warn(`No response data found for ${questKey} ${taskKey}`);
+              }
+          }
+      }
+
+      // Save the quest with updated tasks
+      try {
+          await quest.save();
+      } catch (err) {
+          console.error(`Error updating quest ${questKey}:`, err);
+      }
   }
+
+  console.log("Data parsing and upload completed.");
+}
   
 
 // execute

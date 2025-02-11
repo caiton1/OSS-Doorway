@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
-const StudentModel = require("./models/StudentModel")
-const HintModel = require("./models/HintModel")
+const StudentModel = require("../models/StudentModel")
+const HintModel = require("../models/HintModel")
 
 import dotenv from "dotenv";
 dotenv.config();

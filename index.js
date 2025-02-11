@@ -2,18 +2,18 @@
  * This is the main entrypoint to your Probot app
  * @param {import('probot').Probot} app
  */
-import { gameFunction } from "./src/gamification.js";
-import { MongoDB } from "./src/database.js";
 import mongoose from "mongoose";
 import fs from "fs";
 import readline from "readline";
+
+import { gameFunction } from "./src/gamification.js";
+import { MongoDB } from "./src/database.js";
 const responseFilePath = "./src/config/response.json";
 const questConfigFilepath = "./src/config/quest_config.json"
 
 const questConfig = JSON.parse(fs.readFileSync(questConfigFilepath));
-const responses = JSON.parse(
-  fs.readFileSync(responseFilePath, "utf-8")
-).responses;
+const responses = JSON.parse(fs.readFileSync(responseFilePath, "utf-8")).responses;
+
 const db = new MongoDB();
 await db.connect();
 
