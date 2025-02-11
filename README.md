@@ -43,11 +43,11 @@ First, you're going to need to setup a MongoDB database for the bot to store use
 
 <img src="./assets/driver.png" width="600"/>
 
-10. Save the link as shown above, replacing <db_password> with the password you created earlier.
+9. Save the link as shown above, replacing <db_password> with the password you created earlier.
 
-11. Setup complete, the URI link will be used in the [Probot](#probot-setup) section.
+10. Setup complete, the URI link will be used in the [Probot](#probot-setup) section.
 
-***NOTE:*** For simplicity, I am using the admin account to connect to the database, in a production environment, you should NOT do this and should set up a separate least privalege account to access the database.
+***NOTE:*** For simplicity, I am using the admin account to connect to the database, in a production environment, you should NOT do this and should set up a separate least privilege account to access the database.
 
 ---
 
@@ -68,7 +68,7 @@ docker run -it --rm \
   -p 3000:3000 \
   oss-dev
 ```
-  - -it for interactive terminal, -d for detached mode
+  - -it means interactive terminal, if you want to run it in background, swap it out with -d for detached mode
 
 3. Go to the provided link from terminal while running server, usually [http://localhost:3000](http://localhost:3000).
 
@@ -84,11 +84,11 @@ docker run -it --rm \
 
 8. If not already in .env file, it will ask for URI, DB_NAME and OSS_REPO.
 
-9. Fill in using the URI that you saved from database setup step 10 [earlier](#database).
+9. Fill in using the URI that you saved from database setup step 9 [earlier](#database).
 
 10. Fill in the database/collection name you want.
 
-11. Fill in the OSS repo that you created from step 4 organization [earlier](#organization).
+11. Fill in the OSS repo that you created from step 3 organization [earlier](#organization).
 
 12. Setup complete, keep the server running while using/developin).
 ---
