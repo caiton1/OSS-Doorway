@@ -718,7 +718,7 @@ async function resetReadme(owner, repo, context) {
 async function createRepos(context, org, users, db) {
   var success = [];
   var unsuccessful = [];
-  const ossRepoData = ossRepo.split('/');
+  const ossRepoData = process.env.OSS_REPO.split('/');
 
   for (const username of users) {
     try {
