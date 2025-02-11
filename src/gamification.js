@@ -12,7 +12,7 @@ const progressReadmePath = "./src/templates/progress.md";
 const questResponse = JSON.parse(fs.readFileSync(responseFilePath, "utf-8"));
 const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
 
-const ossRepo = quests.oss_repo;
+const ossRepo = process.env.OSS_REPO;
 const mapRepoLink = quests.map_repo_link;
 
 //////////////////////////////////

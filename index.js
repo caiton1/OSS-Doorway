@@ -6,17 +6,26 @@ import { gameFunction } from "./src/gamification.js";
 import { MongoDB } from "./src/database.js";
 import mongoose from "mongoose";
 import fs from "fs";
+import readline from "readline";
 const responseFilePath = "./src/config/response.json";
+const questConfigFilepath = "./src/config/quest_config.json"
+
+const questConfig = JSON.parse(fs.readFileSync(questConfigFilepath));
 const responses = JSON.parse(
   fs.readFileSync(responseFilePath, "utf-8")
 ).responses;
 const db = new MongoDB();
 await db.connect();
 
+await checkOSSRepo();
+
+
 export default (app) => {
-  // TODO: update to reflect new command structure
   app.on("issues.opened", async (context) => {
+    const { owner, repo } = context.repo();
     if (context.payload.issue.user.type === "Bot") return;
+    // edge case: OSS repo also under user/org
+    if (owner + "/" + repo == process.env.OSS_REPO) return;
 
     const user = context.payload.issue.user;
     const issueComment = context.issue({
@@ -36,6 +45,8 @@ export default (app) => {
     const user = context.payload.comment.user.login;
     // in orgs, the org is the "owner" of the repo
     const { owner, repo } = context.repo();
+    // edge case: OSS repo also under user/org
+    if (owner + "/" + repo == process.env.OSS_REPO) return;
     const comment = context.payload.comment.body;
     // admin commands
     if (comment.startsWith("/")) {
@@ -45,7 +56,7 @@ export default (app) => {
         issueComment(context, "You need to be a repo or org owner to run / commands.");
       }
     } 
-    else if (comment.startsWith("help")){ // TODO: complete placeholder
+    else if (comment.startsWith("help")){
       try{
         await connectToDatabase();
         var user_document = await db.downloadUserData(user);
@@ -122,7 +133,7 @@ async function parseCommand(context, org, comment) {
               repo,
               context,
               user_document.user_data
-            ); // TODO: same as below
+            );
             await db.updateData(user_document);
           } else {
             response = "Failed to create new user, user already exists";
@@ -206,5 +217,32 @@ async function isAdmin(context, org, username) {
     throw new Error(
       "Failed to check if user is the owner of the organization."
     );
+  }
+}
+
+async function checkOSSRepo() {
+  if (!process.env.OSS_REPO) {
+      console.log('OSS_REPO is missing in the .env file.');
+      console.log('Expected input: <owner/repo>, owner is either a GitHub username or organization and repo is the OSS repo.')
+      console.warn('The bot cannot respond in this repo, it is read only. The user or organization should own the OSS repo.')
+      console.log('Please enter the repository:');
+      
+      const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+      });
+
+      return new Promise((resolve) => {
+          rl.question('OSS_REPO: ', (answer) => {
+              rl.close();
+              
+              fs.appendFileSync('.env', `OSS_REPO=${answer}\n`);
+              console.log('OSS_REPO has been added to .env file.\n');
+              resolve(answer);
+          });
+      });
+  } else {
+      console.log('✅ OSS_REPO found:', process.env.OSS_REPO, '\n');
+      return process.env.OSS_REPO;
   }
 }
