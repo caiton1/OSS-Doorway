@@ -39,11 +39,12 @@ First, you're going to need to setup a MongoDB database for the bot to store use
 
 7. Click create database user.
 
-8. Next, click choose connection method (or the connect buttonon the cluster dashboard) and click drivers under *"Connect to your application"*.
+8. Next, click choose connection method (or the connect buttonon the cluster dashboard) and click *Drivers* under *"Connect to your application"*.
+   - It may say your cluster is provisioning, in which case click done, wait a few minutes until cluster is created, then click connect and click *Drivers* under *"Connect to your application"*.
 
 <img src="./assets/driver.png" width="600"/>
 
-9. Save the link as shown above, replacing <db_password> with the password you created earlier.
+9. Save the link as shown above, ***replacing <db_password>*** with the password you created earlier.
 
 10. Setup complete, the URI link will be used in the [Probot](#probot-setup) section.
 
@@ -52,7 +53,7 @@ First, you're going to need to setup a MongoDB database for the bot to store use
 ---
 
 ### Probot setup
-1. Clone or download the repo.
+1. Clone or download this repo.
 
 2. install dependencies (manually or with docker).
    - Manually:
