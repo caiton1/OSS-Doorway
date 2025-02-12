@@ -1,5 +1,6 @@
 import fs from "fs";
 import { taskMapping } from "./taskMapping.js";
+import LLM from "./llm.js"
 
 // Files from context of file accessing exported functions (from viewpoint of index.js) when using I/O functions
 const questFilePath = "./src/config/quest_config.json";
@@ -14,6 +15,7 @@ const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
 
 const ossRepo = quests.oss_repo;
 const mapRepoLink = quests.map_repo_link;
+const llmInstance = new LLM();
 
 //////////////////////////////////
 /* ----- QUEST MANAGEMENT ----- */
@@ -236,7 +238,8 @@ async function giveHint(user_data, context, db) {
   }
   else {
     //TODO: take response and added the LLM to it (reword the hint) 
-    response += `${hintResponse}`;
+    var newHintResponse = await llmInstance.rewordHint(hintResponse);
+    response += `${newHintResponse}`;
     user_data.points -= 5; // arbitrary for now, but stored in DB
     user_data.accepted[quest][task].hints += 1;
   }

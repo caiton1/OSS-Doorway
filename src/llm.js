@@ -3,7 +3,7 @@ import { exec } from 'child_process';
 export default class LLM {
   async validateAnswer(question,answer,real_answer) {
     return new Promise((resolve, reject) => {
-      var command = 'python3 ./src/openAnswer.py' +question+' '+answer+' '+real_answer;
+      var command = `python3 ./src/openAnswer.py ${question} ${answer} ${real_answer}`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
           return;
@@ -11,14 +11,14 @@ export default class LLM {
         if (stderr) {
           console.error(`stderr: ${stderr}`);
         }
-        resolve(`Result: ${stdout.trim()}`);
+        resolve(`${stdout.trim()}`);
       });
     });
   }
 
-  async rewordhint(hint) {
+  async rewordHint(hint) {
     return new Promise((resolve, reject) => {
-      var command = 'python3 ./src/rewordHint.py'+hint;
+      var command = `python3 ./src/rewordHint.py ${hint}`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
           return;
@@ -26,7 +26,7 @@ export default class LLM {
         if (stderr) {
           console.error(`stderr: ${stderr}`);
         }
-        resolve(`Result: ${stdout.trim()}`);
+        resolve(`${stdout.trim()}`);
       });
     });
   }

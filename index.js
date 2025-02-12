@@ -33,7 +33,7 @@ export default (app) => {
 
     return;
   });
-  console.log(run());
+  runHint();
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
     // in orgs, the org is the "owner" of the repo
@@ -95,7 +95,7 @@ async function connectToDatabase() {
 async function runRAG() {
   try {
     const result = await llmInstance.validateAnswer("what kind of trees","red","blue"); 
-    return result;
+    console.log(result);
   } catch (error) {
     console.error(error);
   }
@@ -104,7 +104,7 @@ async function runRAG() {
 async function runHint() {
   try {
     const result = await llmInstance.rewordHint("heat helps with melting"); 
-    return result;
+    console.log(result);
   } catch (error) {
     console.error(error);
   }
