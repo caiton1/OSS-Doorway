@@ -236,7 +236,7 @@ async function checkOSSRepo() {
           rl.question('OSS_REPO: ', (answer) => {
               rl.close();
               
-              fs.appendFileSync('.env', `OSS_REPO=${answer}\n`);
+              fs.appendFileSync('.env', `OSS_REPO="${answer}"\n`);
               console.log('OSS_REPO has been added to .env file.\n');
               resolve(answer);
           });
