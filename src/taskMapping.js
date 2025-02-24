@@ -217,7 +217,7 @@ async function handleQ2Quiz(user_data, user, context, ossRepo, response, selecte
   
       response = response.success + 
         `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
-        `\n\n # Feedback:\n${feedback.join('')}`;
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {
