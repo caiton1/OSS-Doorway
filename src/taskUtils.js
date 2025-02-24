@@ -440,7 +440,7 @@ function validateAnswers(userAnswerString, correctAnswers) {
             correctAnswersNumber += 1;
         }
         
-        return `Question ${index + 1}: ${isCorrect ? "Correct" : "Incorrect"}. ${isCorrect ? `Correct answer: ${correctAnswers[index]}` : ""} \n`;
+        return `Question ${index + 1}: ${isCorrect ? "**Correct**" : "**Incorrect**"}. ${!isCorrect ? `Correct answer: ${correctAnswers[index]}` : ""} \n`;
     });
     
     return {correctAnswersNumber, feedback};
