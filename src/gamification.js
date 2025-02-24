@@ -13,7 +13,7 @@ const progressReadmePath = "./src/templates/progress.md";
 const questResponse = JSON.parse(fs.readFileSync(responseFilePath, "utf-8"));
 const quests = JSON.parse(fs.readFileSync(questFilePath, "utf8"));
 
-const ossRepo = quests.oss_repo;
+const ossRepo = process.env.OSS_REPO;
 const mapRepoLink = quests.map_repo_link;
 const llmInstance = new LLM();
 
@@ -722,7 +722,7 @@ async function resetReadme(owner, repo, context) {
 async function createRepos(context, org, users, db) {
   var success = [];
   var unsuccessful = [];
-  const ossRepoData = ossRepo.split('/');
+  const ossRepoData = process.env.OSS_REPO.split('/');
 
   for (const username of users) {
     try {

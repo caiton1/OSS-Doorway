@@ -3,26 +3,80 @@ import Quest from "./models/QuestModel.js";
 import Task from "./models/TaskModel.js";
 import Hint from "./models/HintModel.js";
 
+import fs from "fs";
+import readline from "readline"
 import dotenv from "dotenv";
 dotenv.config();
 
-// TODO: implement timer
+const askQuestion = (query) => {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => rl.question(query, (ans) => { rl.close(); resolve(ans); }));
+};
 
 export class MongoDB {
   constructor() {
+    // Check if URI and DB_NAME are already in environment variables
     this.uri = process.env.URI;
-    this.client = new MongoClient(this.uri);
     this.dbName = process.env.DB_NAME;
     this.collectionName = "user_data";
+
+    // Check for missing env variables
+    if (!this.uri || !this.dbName) {
+      console.log("❗ Missing required environment variables: URI or DB_NAME.");
+    }
+
+    // Initialize MongoClient only if URI and DB_NAME exist in env
+    if (this.uri && this.dbName) {
+      this.client = new MongoClient(this.uri);
+    }
   }
 
+  // Method to check and prompt for missing env variables
+  async checkAndSetupEnv() {
+    let updatedEnv = false;
+
+    // Prompt for MongoDB URI if not set in env
+    if (!this.uri) {
+      this.uri = await askQuestion("Enter your MongoDB URI: ");
+      updatedEnv = true;
+    }
+
+    // Prompt for DB_NAME if not set in env
+    if (!this.dbName) {
+      this.dbName = await askQuestion("Enter your MongoDB Database Name: ");
+      updatedEnv = true;
+    }
+
+    // If any values were provided, save them to .env
+    if (updatedEnv) {
+      const envContent = `\n
+URI="${this.uri}"
+DB_NAME="${this.dbName}"
+      `.trim() + "\n";
+
+      fs.appendFileSync(".env", envContent);
+      console.log("\n✅ MongoDB configuration saved to .env file!");
+    }
+
+    // Now initialize MongoClient after env is set
+    this.client = new MongoClient(this.uri);
+  }
+
+  // Connect to MongoDB
   async connect() {
     try {
+      // Ensure MongoClient is initialized after checkAndSetupEnv
+      if (!this.client) {
+        await this.checkAndSetupEnv(); // Ensure client is initialized
+      }
+
+      // Connect to MongoDB and access the database/collection
       this.db = this.client.db(this.dbName);
       this.collection = this.db.collection(this.collectionName);
-      console.log("Mongo DB successfully connected. ");
+
+      console.log("✅ MongoDB successfully connected.\n");
     } catch (error) {
-      console.error("Error connecting to MongoDB:", error);
+      console.error("❌ Error connecting to MongoDB:\n", error);
     }
   }
 

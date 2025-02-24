@@ -43,6 +43,24 @@ async function isFirstAssignee(repo, user, selectedIssue) {
     }
 }
 
+async function hasNonCodeContributionLabel(repo, selectedIssue) {
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${repo}/issues/${selectedIssue}`
+        );
+        if (!response.ok) {
+            throw new Error(`Issue ${selectedIssue} not found in repository ${repo}`);
+        }
+        const issueSelected = await response.json();
+        const labels = issueSelected.labels.map((label) => label.name);
+
+        return labels.includes("non-code contribution");
+    } catch (error) {
+        console.error("Error checking labels: " + error);
+        return false;
+    }
+}
+
 async function getPRCount(repo) {
     try {
         const response = await fetch(`https://api.github.com/repos/${repo}/pulls`);
@@ -460,5 +478,6 @@ export const utils = {
     issueClosed,
     checkAssignee,
     getTopContributor,
-    validateAnswers
+    validateAnswers,
+    hasNonCodeContributionLabel,
 };
