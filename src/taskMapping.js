@@ -70,7 +70,7 @@ async function handleQ1T2(user_data, user, context, ossRepo, response, selectedI
 
 async function handleQ1T3(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswer = "c";
-    if (context.payload.comment.body.toLowerCase().includes(correctAnswer)) {
+    if (context.payload.comment.body.toLowerCase() === correctAnswer) {
         await completeTask(user_data, "Q1", "T3", context, db);
         return [response.success, true];
     }
@@ -81,7 +81,7 @@ async function handleQ1T3(user_data, user, context, ossRepo, response, selectedI
 
 async function handleQ1T4(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswer = "d";
-    if (context.payload.comment.body.toLowerCase().includes(correctAnswer)) {
+    if (context.payload.comment.body.toLowerCase() === correctAnswer) {
         await completeTask(user_data, "Q1", "T4", context, db);
         return [response.success, true];
     }
@@ -107,29 +107,36 @@ async function handleQ2T1(user_data, user, context, ossRepo, response, selectedI
     const issueComment = context.payload.comment.body;
     const openIssues = await utils.openIssues(ossRepo, context);
     const firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
+    const nonCodeLabel = await utils.hasNonCodeContributionLabel(ossRepo, Number(issueComment));
 
-    if (openIssues.includes(Number(issueComment)) && firstAssignee) {
+    if (openIssues.includes(Number(issueComment)) && firstAssignee && nonCodeLabel) {
         user_data.selectedIssue = Number(issueComment);
         await completeTask(user_data, "Q2", "T1", context, db);
         return [response.success, true];
     }
+    
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
 }
 
 async function handleQ2T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    if (await utils.checkAssignee(ossRepo, selectedIssue, user, context)) {
+    const issueComment = context.payload.comment.body.trim().toLowerCase();
+
+    if (issueComment === "done" && await utils.checkAssignee(ossRepo, selectedIssue, user, context)) {
         await completeTask(user_data, "Q2", "T2", context, db);
         return [response.success, true];
     }
+
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
 }
 
 async function handleQ2T3(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    if (await utils.userCommentedInIssue(ossRepo, selectedIssue, user, context)) {
+    const issueComment = context.payload.comment.body.trim().toLowerCase();
+
+    if (issueComment === "done" && await utils.userCommentedInIssue(ossRepo, selectedIssue, user, context)) {
         await completeTask(user_data, "Q2", "T3", context, db);
         return [response.success, true];
     }
@@ -139,7 +146,9 @@ async function handleQ2T3(user_data, user, context, ossRepo, response, selectedI
 }
 
 async function handleQ2T4(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    if (await utils.isContributorMentionedInIssue(ossRepo, selectedIssue, context)) {
+    const issueComment = context.payload.comment.body.trim().toLowerCase();
+
+    if (issueComment === "done" && await utils.isContributorMentionedInIssue(ossRepo, selectedIssue, context)) {
         await completeTask(user_data, "Q2", "T4", context, db);
         return [response.success, true];
     }
@@ -151,7 +160,7 @@ async function handleQ2T4(user_data, user, context, ossRepo, response, selectedI
 // Q3
 async function handleQ3T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswer = "c";
-    if (context.payload.comment.body.toLowerCase().includes(correctAnswer)) {
+    if (context.payload.comment.body.toLowerCase() === correctAnswer) {
         await completeTask(user_data, "Q3", "T1", context, db);
         return [response.success, true];
     }
@@ -187,7 +196,6 @@ async function handleQ3T3(user_data, user, context, ossRepo, response, selectedI
 async function handleQ1Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswers = ["b", "a", "c", "b", "d"]; 
     const userAnswerString = context.payload.comment.body;
-    
     
     try {
       const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
