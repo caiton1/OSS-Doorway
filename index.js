@@ -42,7 +42,7 @@ export default (app) => {
 
     return;
   });
-  runHint();
+  console.log(runHint());
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
     // in orgs, the org is the "owner" of the repo

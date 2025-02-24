@@ -6,6 +6,7 @@ export default class LLM {
       var command = `python3 ./src/openAnswer.py ${question} ${answer} ${real_answer}`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
+          console.error(error);
           return;
         }
         if (stderr) {
@@ -21,6 +22,7 @@ export default class LLM {
       var command = `python3 ./src/rewordHint.py ${hint}`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
+          console.error(error);
           return;
         }
         if (stderr) {
