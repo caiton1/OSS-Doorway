@@ -40,7 +40,7 @@ async function handleQ0T1(user_data, user, context, ossRepo, response, selectedI
     }
     // fail
     response = response.error;
-    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    // response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
 
 }
@@ -203,8 +203,8 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
       await completeTask(user_data, "Q1", "T6", context, db);
   
       response = response.success + 
-        `Number of Correct Answers: ${correctAnswersNumber}` + 
-        `\n\nFeedback:\n${feedback.join('')}`;
+        `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {
@@ -215,7 +215,7 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
 }
 
 async function handleQ2Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    const correctAnswers = ["c", "b", "c", "c", "b", "c"]; 
+    const correctAnswers = ["a", "b", "c", "c", "d", "b"]; 
     const userAnswerString = context.payload.comment.body;
     
     try {
@@ -224,8 +224,8 @@ async function handleQ2Quiz(user_data, user, context, ossRepo, response, selecte
       await completeTask(user_data, "Q2", "T5", context, db);
   
       response = response.success + 
-        `Number of Correct Answers: ${correctAnswersNumber}` + 
-        `\n\nFeedback:\n${feedback.join('')}`;
+        `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {
@@ -244,8 +244,8 @@ async function handleQ3Quiz(user_data, user, context, ossRepo, response, selecte
       await completeTask(user_data, "Q3", "T4", context, db);
   
       response = response.success + 
-        `Number of Correct Answers: ${correctAnswersNumber}` + 
-        `\n\nFeedback:\n${feedback.join('')}`;
+        `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {
