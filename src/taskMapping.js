@@ -195,8 +195,8 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
       await completeTask(user_data, "Q1", "T6", context, db);
   
       response = response.success + 
-        `Number of Correct Answers: ${correctAnswersNumber}` + 
-        `\n\nFeedback:\n${feedback.join('')}`;
+        `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {
@@ -236,8 +236,8 @@ async function handleQ3Quiz(user_data, user, context, ossRepo, response, selecte
       await completeTask(user_data, "Q3", "T4", context, db);
   
       response = response.success + 
-        `Number of Correct Answers: ${correctAnswersNumber}` + 
-        `\n\nFeedback:\n${feedback.join('')}`;
+        `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {
