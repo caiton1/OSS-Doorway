@@ -28,7 +28,6 @@ export default (app) => {
     if (context.payload.issue.user.type === "Bot") return;
     // edge case: OSS repo also under user/org
     if (owner + "/" + repo == process.env.OSS_REPO) return;
-
     const user = context.payload.issue.user;
     const issueComment = context.issue({
       body: responses.newIssue,
@@ -42,7 +41,7 @@ export default (app) => {
 
     return;
   });
-  console.log(runHint());
+  runHint();
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
     // in orgs, the org is the "owner" of the repo

@@ -19,7 +19,7 @@ export default class LLM {
 
   async rewordHint(hint) {
     return new Promise((resolve, reject) => {
-      var command = `python3 ./src/rewordHint.py ${hint}`;
+      var command = `python3 ./src/rewordHint.py "${hint}"`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(error);

@@ -6,6 +6,8 @@ import chromadb
 
 api_key = os.getenv('OPENAI_API_KEY')
 
+if not api_key:
+    raise ValueError("OPENAI_API_KEY is not set in environment variables.")
 lm = dspy.LM('openai/gpt-4o-mini', api_key=api_key)
 dspy.configure(lm=lm)
 

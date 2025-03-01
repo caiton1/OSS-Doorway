@@ -1,11 +1,12 @@
 import sys
 import dspy
 import os
+import openai
+from dotenv import load_dotenv
+load_dotenv()
 
-api_key = os.getenv('OPENAI_API_KEY')
-
-lm = dspy.LM('openai/gpt-4o-mini', api_key=api_key)
-dspy.configure(lm=lm)
+gpt = dspy.LM('openai/gpt-4o-mini')
+dspy.settings.configure(lm=gpt)
 
 def addResponse(hint):
     qa = dspy.ChainOfThought("question -> answer: str")
