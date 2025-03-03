@@ -16,6 +16,21 @@ export default class LLM {
       });
     });
   }
+  async createNewHint(task) {
+    return new Promise((resolve, reject) => {
+      var command = `python3 ./src/newHint.py "${task}"`;
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error(error);
+          return;
+        }
+        if (stderr) {
+          console.error(`stderr: ${stderr}`);
+        }
+        resolve(`${stdout.trim()}`);
+      });
+    });
+  }
 
   async rewordHint(hint) {
     return new Promise((resolve, reject) => {

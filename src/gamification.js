@@ -234,9 +234,12 @@ async function giveHint(user_data, context, db) {
   const hintResponse = await db.findHintResponse(quest, task, hints + 1)
 
   if (hintResponse == null) {
+    //var newHint = await llmInstance.createNewHint(quest,task)
+    //console.log(newHint)
     response = "There are no more hints!";
   }
   else {
+    console.log(`${quest},${task}`);
     var newHintResponse = await llmInstance.rewordHint(`${hintResponse}`);
     response += `${newHintResponse}`;
     user_data.points -= 5; // arbitrary for now, but stored in DB
