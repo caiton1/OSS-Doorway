@@ -1,49 +1,30 @@
 import sys
 import dspy
-import os
 import json
-import chromadb
+from dotenv import load_dotenv
+load_dotenv()
 
-api_key = os.getenv('OPENAI_API_KEY')
+gpt = dspy.LM('openai/gpt-4o-mini')
+dspy.settings.configure(lm=gpt)
 
-if not api_key:
-    raise ValueError("OPENAI_API_KEY is not set in environment variables.")
-lm = dspy.LM('openai/gpt-4o-mini', api_key=api_key)
-dspy.configure(lm=lm)
-
-chroma_client = chromadb.PersistentClient(path="./chroma_db")
-collection = chroma_client.get_or_create_collection("rag_docs")
-
-def load_json(file_path):
-    with open(file_path, "r", encoding="utf-8") as file:
+def load_json() -> list[str]:
+    with open("qa_data.json", "r", encoding="utf-8") as file:
         data = json.load(file)
-    return data  
-
-def add_qa_pairs(qa_pairs):
-    for i, pair in enumerate(qa_pairs):
-        collection.add(ids=[str(i)], documents=[pair["question"] + " " + pair["answer"]])
-
-def retrieve(query, top_k=3):
-    results = collection.query(query_texts=[query], n_results=top_k)
-    return results["documents"][0] if results["documents"] else []
+    results = [entry["answer"] for entry in data]
+    return results
 
 class RAG(dspy.Module):
-    def __init__(self,retriever):
-        self.retriever = retriever
+    def __init__(self):
         self.respond = dspy.ChainOfThought('context, question -> response')
 
     def forward(self, question):
-        docs = self.retriever(question)
-        context = "\n".join(docs)
-        return self.respond(context=context, question=question)
+        return self.respond(context=load_json(),question=question)
+
+def ragAnswer(question,answer,correctAnswer):
+    quest = f"""On a scale from 0-100 how correct is this answer,
+    Question:{question},Answer:{answer},Correct Answer:{correctAnswer}"""
+    rep = RAG(question=quest)
+    return rep.answer
 
 if __name__ == '__main__':
-    json_file = "../config/qa_data.json"  
-    qa_pairs = load_json(json_file)
-    add_qa_pairs(qa_pairs)
-    rag_model = RAG(retrieve)
-    question = f"""On a scale from 0 - 100 how accarate is this answer,
-    Question:{sys.argv[1]}Correct Answer:{sys.argv[2]},Acutal
-    Answer{sys.argv[3]}"""
-    answer = rag_model.forward(question)
-    print("RAG Answer:", answer)
+    print(ragAnswer(sys.argv[1],sys.argv[2],sys.argv[3]))

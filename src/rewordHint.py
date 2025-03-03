@@ -1,7 +1,5 @@
 import sys
 import dspy
-import os
-import openai
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -10,7 +8,7 @@ dspy.settings.configure(lm=gpt)
 
 def addResponse(hint):
     qa = dspy.ChainOfThought("question -> answer: str")
-    quest = f"reword this text:{hint}"
+    quest = f"reword this text to make it sound better:{hint}"
     rep = qa(question=quest)
     return rep.answer
 

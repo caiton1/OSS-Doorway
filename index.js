@@ -4,7 +4,6 @@
  */
 import mongoose from "mongoose";
 import fs from "fs";
-import LLM from "./src/llm.js"
 import readline from "readline";
 
 import { gameFunction } from "./src/gamification.js";
@@ -20,7 +19,6 @@ await db.connect();
 
 await checkOSSRepo();
 
-const llmInstance = new LLM();
 
 export default (app) => {
   app.on("issues.opened", async (context) => {
@@ -41,7 +39,6 @@ export default (app) => {
 
     return;
   });
-  runHint();
   app.on("issue_comment.created", async (context) => {
     const user = context.payload.comment.user.login;
     // in orgs, the org is the "owner" of the repo
@@ -101,25 +98,6 @@ async function connectToDatabase() {
     process.exit(1); // fail code
   }
 }
-
-async function runRAG() {
-  try {
-    const result = await llmInstance.validateAnswer("what kind of trees","red","blue"); 
-    console.log(result);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function runHint() {
-  try {
-    const result = await llmInstance.rewordHint("heat helps with melting"); 
-    console.log(result);
-  } catch (error) {
-    console.error(error);
-  }
-}
-
 
 // Call the async function
 // match and break down / command

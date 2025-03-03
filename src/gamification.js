@@ -237,7 +237,6 @@ async function giveHint(user_data, context, db) {
     response = "There are no more hints!";
   }
   else {
-    //TODO: take response and added the LLM to it (reword the hint) 
     var newHintResponse = await llmInstance.rewordHint(`${hintResponse}`);
     response += `${newHintResponse}`;
     user_data.points -= 5; // arbitrary for now, but stored in DB
