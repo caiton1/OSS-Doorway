@@ -234,8 +234,8 @@ async function giveHint(user_data, context, db) {
   const hintResponse = await db.findHintResponse(quest, task, hints + 1)
 
   if (hintResponse == null) {
-    //var newHint = await llmInstance.createNewHint(quest,task)
-    //console.log(newHint)
+    var newHint = await llmInstance.createNewHint(quest,task)
+    console.log(newHint)
     response = "There are no more hints!";
   }
   else {

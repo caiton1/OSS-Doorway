@@ -16,9 +16,9 @@ export default class LLM {
       });
     });
   }
-  async createNewHint(task) {
+  async createNewHint(quest,task) {
     return new Promise((resolve, reject) => {
-      var command = `python3 ./src/newHint.py "${task}"`;
+      var command = `python3 ./src/newHint.py "${quest}" "${task}"`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(error);
