@@ -235,8 +235,7 @@ async function giveHint(user_data, context, db) {
 
   if (hintResponse == null) {
     var newHint = await llmInstance.createNewHint(quest,task)
-    console.log(newHint)
-    response = "There are no more hints!";
+    response = `${newHint}`;
   }
   else {
     console.log(`${quest},${task}`);
