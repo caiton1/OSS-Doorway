@@ -33,7 +33,7 @@ def load_hints(quest,task):
     
 class RAG(dspy.Module):
     def __init__(self):
-        self.respond = dspy.ChainOfThought('context, question -> response')
+        self.respond = dspy.Predict('context, question -> response')
 
     def forward(self, question):
         return self.respond(context=load_json(),question=question)
@@ -44,7 +44,7 @@ def ragAnswer(quest,task):
     quest = f"""Based on this task and these hints create one new
     hint and return just that hint,task:{prompt},hints {hints}"""
     rep = RAG()
-    return rep(question=quest)
+    return rep(question=quest).response
     
 
 if __name__ == '__main__':
