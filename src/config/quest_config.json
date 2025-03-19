@@ -89,7 +89,7 @@
       "xp": 50
     },
     "T2": {
-      "desc": "Post in issue asking for a review",
+      "desc": "Post in the pull request asking for a review",
       "points": 25,
       "xp": 25
     },
