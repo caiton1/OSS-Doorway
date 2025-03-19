@@ -1,5 +1,5 @@
 {
-  "map_repo_link":"https://github.com/caiton1/OSS-Doorway/tree/main/map",
+  "map_repo_link": "https://raw.githubusercontent.com/caiton1/OSS-Doorway/main/map",
   "Q0": {
     "metadata": {
       "title": "Configuring your environment",
@@ -7,8 +7,8 @@
     },
     "T1": {
       "desc": "Environment Preferences",
-      "points": 20,
-      "xp": 20
+      "points": 0,
+      "xp": 0
     }
   },
   "Q1": {
