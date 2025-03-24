@@ -53,12 +53,12 @@
       "prerequisite": "Q1"
     },
     "T1": {
-      "desc": "Choose an issue that you would like to work with",
+      "desc": "Identify the assigned user for the issue",
       "points": 25,
       "xp": 25
     },
     "T2": {
-      "desc": "Assign your user to work on the issue",
+      "desc": "Choose an issue that you would like to work with",
       "points": 25,
       "xp": 25
     },

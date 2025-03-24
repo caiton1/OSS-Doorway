@@ -104,14 +104,27 @@ async function handleQ1T5(user_data, user, context, ossRepo, response, selectedI
 
 // Q2
 async function handleQ2T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    const issueComment = context.payload.comment.body;
+    const issueComment = context.payload.comment.body.trim().toLowerCase();
+
+    if (issueComment === "pedrorodriguesarantes") {
+        await completeTask(user_data, "Q2", "T1", context, db);
+        return [response.success, true];
+    }
+
+    response = response.error;
+    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+    return [response, false];
+}
+
+async function handleQ2T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
+    const issueComment = context.payload.comment.body.replace("#", "").trim();
     const openIssues = await utils.openIssues(ossRepo, context);
     const firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
     const nonCodeLabel = await utils.hasNonCodeContributionLabel(ossRepo, Number(issueComment));
 
     if (openIssues.includes(Number(issueComment)) && firstAssignee && nonCodeLabel) {
         user_data.selectedIssue = Number(issueComment);
-        await completeTask(user_data, "Q2", "T1", context, db);
+        await completeTask(user_data, "Q2", "T2", context, db);
         return [response.success, true];
     }
     
@@ -120,26 +133,26 @@ async function handleQ2T1(user_data, user, context, ossRepo, response, selectedI
     return [response, false];
 }
 
-async function handleQ2T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    const issueComment = context.payload.comment.body.trim().toLowerCase();
-
-    if (issueComment === "done" && await utils.checkAssignee(ossRepo, selectedIssue, user, context)) {
-        await completeTask(user_data, "Q2", "T2", context, db);
-        return [response.success, true];
-    }
-
-    response = response.error;
-    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
-    return [response, false];
-}
-
 async function handleQ2T3(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const issueComment = context.payload.comment.body.trim().toLowerCase();
-
     if (issueComment === "done" && await utils.userCommentedInIssue(ossRepo, selectedIssue, user, context)) {
-        await completeTask(user_data, "Q2", "T3", context, db);
-        return [response.success, true];
+        try {
+            await context.octokit.issues.addAssignees({
+                owner: ossRepo.split('/')[0],
+                repo: ossRepo.split('/')[1],
+                issue_number: selectedIssue,
+                assignees: [user]
+            });
+
+            await completeTask(user_data, "Q2", "T3", context, db);
+            return [response.success, true];
+        } catch (error) {
+            console.error("Error assigning user to issue:", error);
+            response = response.error + `\n\n❗ Failed to assign user. Please try again or check permissions.`;
+            return [response, false];
+        }
     }
+
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
