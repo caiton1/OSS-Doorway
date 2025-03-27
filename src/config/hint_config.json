@@ -82,7 +82,7 @@
         }
     },
     "Q2":{
-        "T1":{
+        "T2":{
             "H1":{
                 "content": "### 💡Hints\n\n**Hint 1:**  Revisit the **\"Issues\"** tab 📝 to locate the issue you selected earlier.",
                 "video": null,
@@ -91,14 +91,14 @@
                 "penalty" : 5
             },
             "H2":{
-                "content": "### 💡Hints\n\n**Hint 2:**  The **“Assignees”** section is on the right side of the issue page.",
+                "content": "### **Hint 2:**  \n Focus on finding the **assigned** user of the task. \n\n",
                 "video": null,
-                "image": "https://github.com/user-attachments/assets/7783c313-7add-4708-9e0d-4a154e9eb6be",
+                "image": "https://github.com/user-attachments/assets/b6ed6f77-6b9f-4577-9ab8-c5136a78c3ac",
                 "sequence": 2,
                 "penalty" : 5
             }
         },
-        "T2":{
+        "T1":{
             "H1":{
                 "content": "### 💡Hints\n\n**Hint 1:**  The **\"Issues\"** tab 📝 is at the top of the repository page, where you can find all current issues.",
                 "video": null,
