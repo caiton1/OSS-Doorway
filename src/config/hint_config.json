@@ -82,7 +82,7 @@
         }
     },
     "Q2":{
-        "T2":{
+        "T1":{
             "H1":{
                 "content": "### 💡Hints\n\n**Hint 1:**  Revisit the **\"Issues\"** tab 📝 to locate the issue you selected earlier.",
                 "video": null,
@@ -98,7 +98,7 @@
                 "penalty" : 5
             }
         },
-        "T1":{
+        "T2":{
             "H1":{
                 "content": "### 💡Hints\n\n**Hint 1:**  The **\"Issues\"** tab 📝 is at the top of the repository page, where you can find all current issues.",
                 "video": null,
