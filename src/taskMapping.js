@@ -1,9 +1,9 @@
 // import utils for tasks
 import { utils } from "./taskUtils.js";
 import { completeTask } from "./gamification.js";
-
+import LLM from "./llm.js"
 // NOTE: due to how these functions are accessed, keep parameters uniform, even if not used
-
+//const llmInstance = LLM();
 // Q0
 async function handleQ0T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const user_response = context.payload.comment.body.toLowerCase();
@@ -51,6 +51,12 @@ async function handleQ1T1(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q1", "T1", context, db);
         return [response.success, true];
     }
+    /*input = context.payload.comment.body;
+    var newResponse = llmInstance.vaildateAnswer(input,issueCount);
+    if(newResponse == "true") {
+        await completeTask(user_data, "Q1", "T1", context, db);
+        return [response.success, true];
+    }*/
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];

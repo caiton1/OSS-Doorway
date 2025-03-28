@@ -1,9 +1,9 @@
 import { exec } from 'child_process';
 
 export default class LLM {
-  async validateAnswer(question,answer,real_answer) {
+  async validateAnswer(answer,real_answer) {
     return new Promise((resolve, reject) => {
-      var command = `python3 ./src/openAnswer.py "${question}" "${answer}" "${real_answer}"`;
+      var command = `python3 ./src/checkAnswer.py "${answer}" "${real_answer}"`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(error);
