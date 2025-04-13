@@ -51,10 +51,9 @@ async function handleQ1T1(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q1", "T1", context, db);
         return [response.success, true];
     }
-
     var input = context.payload.comment.body;
     var newResponse = await llmInstance.validateAnswer(input,issueCount);
-    if(newResponse == "True") {
+    if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T1", context, db);
         return [response.success, true];
     }
@@ -66,7 +65,6 @@ async function handleQ1T1(user_data, user, context, ossRepo, response, selectedI
 
 async function handleQ1T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const PRCount = await utils.getPRCount(ossRepo);
-    console.log(PRCount);
     if (PRCount !== null && context.payload.comment.body == PRCount) {
         await completeTask(user_data, "Q1", "T2", context, db);
         return [response.success, true];
@@ -74,7 +72,7 @@ async function handleQ1T2(user_data, user, context, ossRepo, response, selectedI
 
     var input = context.payload.comment.body;
     var newResponse = await llmInstance.validateAnswer(input,PRCount);
-    if(newResponse == "True") {
+    if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T2", context, db);
         return [response.success, true];
     }
@@ -92,7 +90,7 @@ async function handleQ1T3(user_data, user, context, ossRepo, response, selectedI
     }
     var input = context.payload.comment.body;
     var newResponse = await llmInstance.validateAnswer(input,correctAnswer);
-    if(newResponse == "True") {
+    if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T3", context, db);
         return [response.success, true];
     }
@@ -110,7 +108,7 @@ async function handleQ1T4(user_data, user, context, ossRepo, response, selectedI
     }
     var input = context.payload.comment.body;
     var newResponse = await llmInstance.validateAnswer(input,correctAnswer);
-    if(newResponse == "True") {
+    if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T4", context, db);
         return [response.success, true];
     }
@@ -129,7 +127,7 @@ async function handleQ1T5(user_data, user, context, ossRepo, response, selectedI
     }
     var input = context.payload.comment.body;
     var newResponse = await llmInstance.validateAnswer(input,topContributor);
-    if(newResponse == "True") {
+    if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T5", context, db);
         return [response.success, true];
     }
@@ -249,6 +247,7 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
       response = response.error + `\n\n[Click here to start](https://github.com/${ossRepo})`;
       return [response, false];
     }
+
 }
 
 async function handleQ2Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
