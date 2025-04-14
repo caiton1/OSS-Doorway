@@ -38,9 +38,7 @@ async function handleQ0T1(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q0", "T1", context, db);
         return [response.success, true];
     }
-    // fail
     response = response.error;
-    // response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
 
 }
@@ -121,8 +119,9 @@ async function handleQ2T2(user_data, user, context, ossRepo, response, selectedI
     const openIssues = await utils.openIssues(ossRepo, context);
     const firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
     const nonCodeLabel = await utils.hasNonCodeContributionLabel(ossRepo, Number(issueComment));
+    const issueTitle = await utils.getIssueTitle(ossRepo, user, user_data, Number(issueComment));
 
-    if (openIssues.includes(Number(issueComment)) && firstAssignee && nonCodeLabel) {
+    if (openIssues.includes(Number(issueComment)) && firstAssignee && nonCodeLabel && issueTitle == user) {
         user_data.selectedIssue = Number(issueComment);
         await completeTask(user_data, "Q2", "T2", context, db);
         return [response.success, true];
