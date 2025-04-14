@@ -464,6 +464,24 @@ function validateAnswers(userAnswerString, correctAnswers) {
     return {correctAnswersNumber, feedback};
 }
 
+
+async function getIssueTitle(repo, user, user_data, selectedIssue) {
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${repo}/issues/${selectedIssue}`
+        );
+        if (!response.ok) {
+            throw new Error(`Issue ${selectedIssue} not found in repository ${repo}`);
+        }
+        const issue = await response.json();
+
+        return issue.title;
+    } catch (error) {
+        console.error("Error fetching issue title: " + error);
+        return null;
+    }
+}
+
 export const utils = {
     getIssueCount,
     isFirstAssignee,
@@ -480,4 +498,5 @@ export const utils = {
     getTopContributor,
     validateAnswers,
     hasNonCodeContributionLabel,
+    getIssueTitle
 };
