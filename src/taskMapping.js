@@ -275,6 +275,7 @@ async function handleQ3Quiz(user_data, user, context, ossRepo, response, selecte
     const userAnswerString = context.payload.comment.body;
     
     try {
+      //covert format for the real answer to correct answer
       const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   
       await completeTask(user_data, "Q3", "T4", context, db);
