@@ -27,13 +27,12 @@ class RAG(dspy.Module):
     def forward(self, question):
         return self.respond(context=load_json(),question=question)
 
-def checkAnswer(answer,realAnswer):
-    quest = f"""compare the answers to quiz to the real answers,return the
-    amount of correct answers, if an answer is similar to a real answer, mark is
-    as correct, answer:{answer} real answer:{realAnswer}"""
+def quizAnswer(answer):
+    quest = f"""format this answer into this format [x,x,x,x...] with brackets
+    at the end and commas seperating the answers , answer ={answer}"""
     rep = RAG()
     return rep(question=quest).response
 
 if __name__ == '__main__':
-    print(checkAnswer(sys.argv[1],sys.argv[2]))
+    print(quizAnswer(sys.argv[1]))
 

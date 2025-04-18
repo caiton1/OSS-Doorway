@@ -1,9 +1,9 @@
 import { exec } from 'child_process';
 
 export default class LLM {
-  async validateAnswer(answer,real_answer) {
+  async validateAnswer(answer,real_answer,quest,task) {
     return new Promise((resolve, reject) => {
-      var command = `python3 ./src/checkAnswer.py "${answer}" "${real_answer}"`;
+      var command = `python3 ./src/checkAnswer.py "${answer}" "${real_answer}" "${quest}" "${task}" `;
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(error);
@@ -12,14 +12,15 @@ export default class LLM {
         if (stderr) {
           console.error(`stderr: ${stderr}`);
         }
-        console.log(`${stdout.trim()}`);
-        resolve(`${stdout.trim()}`);
+        console.log(`${stdout.trim().toLowerCase()}`);
+        resolve(`${stdout.trim().toLowerCase()}`);
       });
     });
   }
-  async quizAnswer(answer,real_answer) {
+  async quizAnswer(answer) {
     return new Promise((resolve, reject) => {
-      var command = `python3 ./src/quizAnswer.py "${answer}" "${real_answer}"`;
+      console.log(answer);
+      var command = `python3 ./src/quizAnswer.py "${answer}"`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(error);
@@ -28,7 +29,6 @@ export default class LLM {
         if (stderr) {
           console.error(`stderr: ${stderr}`);
         }
-        console.log(`${stdout.trim()}`);
         resolve(`${stdout.trim()}`);
       });
     });

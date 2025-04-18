@@ -52,7 +52,7 @@ async function handleQ1T1(user_data, user, context, ossRepo, response, selectedI
         return [response.success, true];
     }
     var input = context.payload.comment.body;
-    var newResponse = await llmInstance.validateAnswer(input,issueCount);
+    var newResponse = await llmInstance.validateAnswer(input,issueCount,"Q1","T1");
     if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T1", context, db);
         return [response.success, true];
@@ -69,9 +69,8 @@ async function handleQ1T2(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q1", "T2", context, db);
         return [response.success, true];
     }
-
     var input = context.payload.comment.body;
-    var newResponse = await llmInstance.validateAnswer(input,PRCount);
+    var newResponse = await llmInstance.validateAnswer(input,PRCount,"Q1","T2");
     if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T2", context, db);
         return [response.success, true];
@@ -89,7 +88,7 @@ async function handleQ1T3(user_data, user, context, ossRepo, response, selectedI
         return [response.success, true];
     }
     var input = context.payload.comment.body;
-    var newResponse = await llmInstance.validateAnswer(input,correctAnswer);
+    var newResponse = await llmInstance.validateAnswer(input,correctAnswer,"Q1","T3");
     if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T3", context, db);
         return [response.success, true];
@@ -107,7 +106,7 @@ async function handleQ1T4(user_data, user, context, ossRepo, response, selectedI
         return [response.success, true];
     }
     var input = context.payload.comment.body;
-    var newResponse = await llmInstance.validateAnswer(input,correctAnswer);
+    var newResponse = await llmInstance.validateAnswer(input,correctAnswer,"Q1","T4");
     if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T4", context, db);
         return [response.success, true];
@@ -126,7 +125,7 @@ async function handleQ1T5(user_data, user, context, ossRepo, response, selectedI
         return [response.success, true];
     }
     var input = context.payload.comment.body;
-    var newResponse = await llmInstance.validateAnswer(input,topContributor);
+    var newResponse = await llmInstance.validateAnswer(input,topContributor,"Q1","T5");
     if(newResponse == "true") {
         await completeTask(user_data, "Q1", "T5", context, db);
         return [response.success, true];
@@ -149,6 +148,13 @@ async function handleQ2T1(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q2", "T1", context, db);
         return [response.success, true];
     }
+    var llm_answer = await llmInstance.validateAnswer(issueComment, openIssues.includes(Number(issueComment)));
+    if(llm_answer == "true" && firstAssignee && nonCodeLabel ) {
+        user_data.selectedIssue = Number(issueComment);
+        await completeTask(user_data, "Q2", "T1", context, db);
+        return [response.success, true];
+    }
+    
     
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
@@ -162,7 +168,11 @@ async function handleQ2T2(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q2", "T2", context, db);
         return [response.success, true];
     }
-
+    var llm_answer = await llmInstance.validateAnswer(issueComment,"done");
+    if(llm_answer == "true" && await utils.checkAssignee(ossRepo, selectedIssue, user, context)) {
+        await completeTask(user_data, "Q2", "T2", context, db);
+        return [response.success, true];
+    }
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
@@ -230,9 +240,11 @@ async function handleQ3T3(user_data, user, context, ossRepo, response, selectedI
 
 async function handleQ1Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswers = ["b", "a", "c", "b", "d"]; 
-    const userAnswerString = context.payload.comment.body;
+    var userAnswerString = context.payload.comment.body;
     
     try {
+      userAnswerString = await llmInstance.quizAnswer(userAnswerString);
+      console.log(userAnswerString);
       const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   
       await completeTask(user_data, "Q1", "T6", context, db);
