@@ -27,12 +27,34 @@ class RAG(dspy.Module):
     def forward(self, question):
         return self.respond(context=load_json(),question=question)
 
-def quizAnswer(answer):
-    quest = f"""format this answer into this format [x,x,x,x...] with brackets
-    at the end and commas seperating the answers , answer ={answer}"""
+def quizAnswer(answer,format):
+    quest = f"""You are a strict formatter.  
+        You will be given two things:
+        1. An Input sentence containing the answer(s).  
+        2. A Format string showing exactly how I want those answer values arranged, using placeholders A, B, C, … in the spots where each value should go.  
+
+        Your job is:
+        - Extract the answer value(s) from the Input.
+        - Substitute them for the placeholders in the Format string, in order.
+        - Output **only** the fully formatted result—absolutely no extra words, punctuation, or explanation.
+        Examples:
+
+        Input: "the answer is 15"  
+        Format: "01"  
+        Output:15
+
+        Input: "the answers are  A, A, A A"  
+        Format: "[A,B,C,D]"  
+        Output:[A,A,A,A]
+
+    Now do this:
+
+    Input: {answer}  
+    Format: {format}
+    Output:"""
     rep = RAG()
     return rep(question=quest).response
 
 if __name__ == '__main__':
-    print(quizAnswer(sys.argv[1]))
+    print(quizAnswer(sys.argv[1],sys.argv[2]))
 

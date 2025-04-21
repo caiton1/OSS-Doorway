@@ -140,16 +140,20 @@ async function handleQ1T5(user_data, user, context, ossRepo, response, selectedI
 async function handleQ2T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const issueComment = context.payload.comment.body;
     const openIssues = await utils.openIssues(ossRepo, context);
-    const firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
-    const nonCodeLabel = await utils.hasNonCodeContributionLabel(ossRepo, Number(issueComment));
+    var firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
+    var nonCodeLabel = await utils.hasNonCodeContributionLabel(ossRepo, Number(issueComment));
 
     if (openIssues.includes(Number(issueComment)) && firstAssignee && nonCodeLabel) {
         user_data.selectedIssue = Number(issueComment);
         await completeTask(user_data, "Q2", "T1", context, db);
         return [response.success, true];
     }
-    var llm_answer = await llmInstance.validateAnswer(issueComment, openIssues.includes(Number(issueComment)));
-    if(llm_answer == "true" && firstAssignee && nonCodeLabel ) {
+
+    var llm_answer = await llmInstance.quizAnswer(issueComment,"13");
+    firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(llm_answer));
+    nonCodeLabel = await utils.hasNonCodeContributionLabel(ossRepo, Number(llm_answer));
+
+    if(openIssues.includes(Number(llm_answer)) && firstAssignee && nonCodeLabel ) {
         user_data.selectedIssue = Number(issueComment);
         await completeTask(user_data, "Q2", "T1", context, db);
         return [response.success, true];
@@ -168,7 +172,7 @@ async function handleQ2T2(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q2", "T2", context, db);
         return [response.success, true];
     }
-    var llm_answer = await llmInstance.validateAnswer(issueComment,"done");
+    var llm_answer = await llmInstance.validateAnswer(issueComment,"done","Q2","T2");
     if(llm_answer == "true" && await utils.checkAssignee(ossRepo, selectedIssue, user, context)) {
         await completeTask(user_data, "Q2", "T2", context, db);
         return [response.success, true];
@@ -185,6 +189,12 @@ async function handleQ2T3(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q2", "T3", context, db);
         return [response.success, true];
     }
+    var llm_answer = await llmInstance.validateAnswer(issueComment,"done","Q2","T3");
+    if(llm_answer == "true" && await utils.userCommentedInIssue(ossRepo, selectedIssue, user, context)) {
+        await completeTask(user_data, "Q2", "T3", context, db);
+        return [response.success, true];
+    }
+
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
@@ -197,6 +207,12 @@ async function handleQ2T4(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q2", "T4", context, db);
         return [response.success, true];
     }
+    var llm_answer = await llmInstance.validateAnswer(issueComment,"done","Q2","T4");
+    if(llm_answer == "true" && await utils.isContributorMentionedInIssue(ossRepo, selectedIssue, context)) {
+        await completeTask(user_data, "Q2", "T4", context, db);
+        return [response.success, true];
+    }
+
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
@@ -243,7 +259,7 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
     var userAnswerString = context.payload.comment.body;
     
     try {
-      userAnswerString = await llmInstance.quizAnswer(userAnswerString);
+      userAnswerString = await llmInstance.quizAnswer(userAnswerString,correctAnswers);
       console.log(userAnswerString);
       const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   

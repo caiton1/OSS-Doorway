@@ -4,6 +4,7 @@ export default class LLM {
   async validateAnswer(answer,real_answer,quest,task) {
     return new Promise((resolve, reject) => {
       var command = `python3 ./src/checkAnswer.py "${answer}" "${real_answer}" "${quest}" "${task}" `;
+      console.log(`${command}`);
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(error);
@@ -17,10 +18,10 @@ export default class LLM {
       });
     });
   }
-  async quizAnswer(answer) {
+  async quizAnswer(answer,format) {
     return new Promise((resolve, reject) => {
       console.log(answer);
-      var command = `python3 ./src/quizAnswer.py "${answer}"`;
+      var command = `python3 ./src/quizAnswer.py "${answer}" "${format}"`;
       exec(command, (error, stdout, stderr) => {
         if (error) {
           console.error(error);
