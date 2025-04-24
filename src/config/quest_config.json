@@ -1,5 +1,5 @@
 {
-  "map_repo_link":"https://github.com/caiton1/OSS-Doorway/tree/main/map",
+  "map_repo_link": "https://raw.githubusercontent.com/caiton1/OSS-Doorway/main/map",
   "Q0": {
     "metadata": {
       "title": "Configuring your environment",
@@ -7,8 +7,8 @@
     },
     "T1": {
       "desc": "Environment Preferences",
-      "points": 20,
-      "xp": 20
+      "points": 0,
+      "xp": 0
     }
   },
   "Q1": {
@@ -53,12 +53,12 @@
       "prerequisite": "Q1"
     },
     "T1": {
-      "desc": "Choose an issue that you would like to work with",
+      "desc": "Identify the assigned user for the issue",
       "points": 25,
       "xp": 25
     },
     "T2": {
-      "desc": "Assign your user to work on the issue",
+      "desc": "Choose an issue that you would like to work with",
       "points": 25,
       "xp": 25
     },
@@ -68,7 +68,7 @@
       "xp": 25
     },
     "T4": {
-      "desc": "Mention a contributor that has most recently been active in the project to help you to solve the issue",
+      "desc": "Mention a top contributor to help you to solve the issue",
       "points": 25,
       "xp": 25
     },
@@ -89,7 +89,7 @@
       "xp": 50
     },
     "T2": {
-      "desc": "Post in issue asking for a review",
+      "desc": "Post in the pull request asking for a review",
       "points": 25,
       "xp": 25
     },

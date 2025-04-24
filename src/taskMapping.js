@@ -38,9 +38,7 @@ async function handleQ0T1(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q0", "T1", context, db);
         return [response.success, true];
     }
-    // fail
     response = response.error;
-    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
 
 }
@@ -138,13 +136,12 @@ async function handleQ1T5(user_data, user, context, ossRepo, response, selectedI
 
 // Q2
 async function handleQ2T1(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    const issueComment = context.payload.comment.body;
+    const issueComment = context.payload.comment.body.trim().toLowerCase();
     const openIssues = await utils.openIssues(ossRepo, context);
     var firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
     var nonCodeLabel = await utils.hasNonCodeContributionLabel(ossRepo, Number(issueComment));
 
-    if (openIssues.includes(Number(issueComment)) && firstAssignee && nonCodeLabel) {
-        user_data.selectedIssue = Number(issueComment);
+    if (issueComment === "pedrorodriguesarantes") {
         await completeTask(user_data, "Q2", "T1", context, db);
         return [response.success, true];
     }
@@ -166,9 +163,14 @@ async function handleQ2T1(user_data, user, context, ossRepo, response, selectedI
 }
 
 async function handleQ2T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    const issueComment = context.payload.comment.body.trim().toLowerCase();
+    const issueComment = context.payload.comment.body.replace("#", "").trim();
+    const openIssues = await utils.openIssues(ossRepo, context);
+    const firstAssignee = await utils.isFirstAssignee(ossRepo, user, Number(issueComment));
+    const nonCodeLabel = await utils.hasNonCodeContributionLabel(ossRepo, Number(issueComment));
+    const issueTitle = await utils.getIssueTitle(ossRepo, user, user_data, Number(issueComment));
 
-    if (issueComment === "done" && await utils.checkAssignee(ossRepo, selectedIssue, user, context)) {
+    if (openIssues.includes(Number(issueComment)) && firstAssignee && nonCodeLabel && issueTitle == user) {
+        user_data.selectedIssue = Number(issueComment);
         await completeTask(user_data, "Q2", "T2", context, db);
         return [response.success, true];
     }
@@ -184,10 +186,22 @@ async function handleQ2T2(user_data, user, context, ossRepo, response, selectedI
 
 async function handleQ2T3(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const issueComment = context.payload.comment.body.trim().toLowerCase();
-
     if (issueComment === "done" && await utils.userCommentedInIssue(ossRepo, selectedIssue, user, context)) {
-        await completeTask(user_data, "Q2", "T3", context, db);
-        return [response.success, true];
+        try {
+            await context.octokit.issues.addAssignees({
+                owner: ossRepo.split('/')[0],
+                repo: ossRepo.split('/')[1],
+                issue_number: selectedIssue,
+                assignees: [user]
+            });
+
+            await completeTask(user_data, "Q2", "T3", context, db);
+            return [response.success, true];
+        } catch (error) {
+            console.error("Error assigning user to issue:", error);
+            response = response.error + `\n\n❗ Failed to assign user. Please try again or check permissions.`;
+            return [response, false];
+        }
     }
     var llm_answer = await llmInstance.validateAnswer(issueComment,"done","Q2","T3");
     if(llm_answer == "true" && await utils.userCommentedInIssue(ossRepo, selectedIssue, user, context)) {
@@ -266,8 +280,8 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
       await completeTask(user_data, "Q1", "T6", context, db);
   
       response = response.success + 
-        `Number of Correct Answers: ${correctAnswersNumber}` + 
-        `\n\nFeedback:\n${feedback.join('')}`;
+        `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {
@@ -279,7 +293,7 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
 }
 
 async function handleQ2Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    const correctAnswers = ["c", "b", "c", "c", "b", "c"]; 
+    const correctAnswers = ["a", "b", "c", "c", "d", "b"]; 
     const userAnswerString = context.payload.comment.body;
     
     try {
@@ -288,8 +302,8 @@ async function handleQ2Quiz(user_data, user, context, ossRepo, response, selecte
       await completeTask(user_data, "Q2", "T5", context, db);
   
       response = response.success + 
-        `Number of Correct Answers: ${correctAnswersNumber}` + 
-        `\n\nFeedback:\n${feedback.join('')}`;
+        `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {
@@ -309,8 +323,8 @@ async function handleQ3Quiz(user_data, user, context, ossRepo, response, selecte
       await completeTask(user_data, "Q3", "T4", context, db);
   
       response = response.success + 
-        `Number of Correct Answers: ${correctAnswersNumber}` + 
-        `\n\nFeedback:\n${feedback.join('')}`;
+        `\n ## You correctly answered ${correctAnswersNumber} questions!` + 
+        `\n\n ### Feedback:\n${feedback.join('')}`;
 
       return [response, true];
     } catch (error) {

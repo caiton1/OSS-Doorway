@@ -458,10 +458,28 @@ function validateAnswers(userAnswerString, correctAnswers) {
             correctAnswersNumber += 1;
         }
         
-        return `Question ${index + 1}: ${isCorrect ? "Correct" : "Wrong"}. Answer: ${correctAnswers[index]}. \n`;
+        return `Question ${index + 1}: ${isCorrect ? "**Correct**" : "**Incorrect**"}. ${!isCorrect ? `Correct answer: ${correctAnswers[index]}` : ""} \n`;
     });
     
     return {correctAnswersNumber, feedback};
+}
+
+
+async function getIssueTitle(repo, user, user_data, selectedIssue) {
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${repo}/issues/${selectedIssue}`
+        );
+        if (!response.ok) {
+            throw new Error(`Issue ${selectedIssue} not found in repository ${repo}`);
+        }
+        const issue = await response.json();
+
+        return issue.title;
+    } catch (error) {
+        console.error("Error fetching issue title: " + error);
+        return null;
+    }
 }
 
 export const utils = {
@@ -480,4 +498,5 @@ export const utils = {
     getTopContributor,
     validateAnswers,
     hasNonCodeContributionLabel,
+    getIssueTitle
 };

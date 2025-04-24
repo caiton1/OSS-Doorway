@@ -84,6 +84,22 @@
     "Q2":{
         "T1":{
             "H1":{
+                "content": "### 💡Hints\n\n**Hint 1:**  Revisit the **\"Issues\"** tab 📝 to locate the issue you selected earlier.",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/b99abf76-785c-498f-b9cb-dc038c349de0",
+                "sequence": 1,
+                "penalty" : 5
+            },
+            "H2":{
+                "content": "### **Hint 2:**  \n Focus on finding the **assigned** user of the task. \n\n",
+                "video": null,
+                "image": "https://github.com/user-attachments/assets/b6ed6f77-6b9f-4577-9ab8-c5136a78c3ac",
+                "sequence": 2,
+                "penalty" : 5
+            }
+        },
+        "T2":{
+            "H1":{
                 "content": "### 💡Hints\n\n**Hint 1:**  The **\"Issues\"** tab 📝 is at the top of the repository page, where you can find all current issues.",
                 "video": null,
                 "image": "https://github.com/user-attachments/assets/b99abf76-785c-498f-b9cb-dc038c349de0",
@@ -98,22 +114,6 @@
                 "penalty" : 5
             }
         },
-        "T2":{
-            "H1":{
-                "content": "### 💡Hints\n\n**Hint 1:**  Revisit the **\"Issues\"** tab 📝 to locate the issue you selected earlier.",
-                "video": null,
-                "image": "https://github.com/user-attachments/assets/b99abf76-785c-498f-b9cb-dc038c349de0",
-                "sequence": 1,
-                "penalty" : 5
-            },
-            "H2":{
-                "content": "### 💡Hints\n\n**Hint 2:**  The **“Assignees”** section is on the right side of the issue page. Click **“Assign yourself”** or the gear icon next to “Assignees” to take **ownership** of the issue.",
-                "video": null,
-                "image": "https://github.com/user-attachments/assets/7783c313-7add-4708-9e0d-4a154e9eb6be",
-                "sequence": 2,
-                "penalty" : 5
-            }
-        },
         "T3":{
             "H1":{
                 "content": "### 💡Hints\n\n**Hint 1:**  Return to the **\"Issues\"** tab 📝 and **open** the issue you've assigned to yourself.",
@@ -123,7 +123,7 @@
                 "penalty" : 5
             },
             "H2":{
-                "content": "### 💡Hints\n\n**Hint 1:**  Return to the **\"Issues\"** tab 📝 and **open** the issue you've assigned to yourself.",
+                "content": "### 💡Hints\n\n**Hint 2:**  Scroll to the **comment section** at the **bottom** of your issue page to post your introduction.",
                 "video": null,
                 "image": null,
                 "sequence": 2,
@@ -132,7 +132,7 @@
         },
         "T4":{
             "H1":{
-                "content": "### 💡Hints\n\n**Hint 1:**  Return to the **\"Issues\"** tab 📝 and **open** the issue you've assigned to yourself.",
+                "content": "### 💡Hints\n\n**Hint 1:**  Use the **\"Insights\"** tab to view the **\"Contributors\"** section and choose a one of the **top five** contributors to mention.",
                 "video": null,
                 "image": "https://github.com/user-attachments/assets/2a2b1038-1b68-4a0f-b81b-9db420b0a8a2",
                 "sequence": 1,
@@ -150,16 +150,16 @@
     "Q3":{
         "T1":{
             "H1":{
-                "content": "### 💡Hints\n\n**Hint 1:**  First look for your issue and then when **committing** your changes, select the option to create a **new branch**",
+                "content": "### 💡Hints\n\n**Hint 1:** Find and **edit** the **README** file according to the task located in the **issue**.",
                 "video": null,
-                "image": "https://github.com/user-attachments/assets/b4ec541f-af4a-4de4-a660-a3bc68c42b18",
+                "image": "https://github.com/user-attachments/assets/64fbe8b1-298e-4a38-84d6-95144b19dbfd",
                 "sequence": 1,
                 "penalty" : 5
             },
             "H2":{
-                "content": "### 💡Hints \n\n**Hint 2:**  Follow through with the proposed changes by creating a **pull request**.",
+                "content": "### 💡Hints \n\n**Hint 2:**  Once you've finished editing, **commit** your changes and follow through to **create** a **pull request**.",
                 "video": null,
-                "image": null,
+                "image": "https://github.com/user-attachments/assets/92ece3f3-0bea-4784-8c08-97d1e3a5c713",
                 "sequence": 2,
                 "penalty" : 5
             }
@@ -182,7 +182,7 @@
         },
         "T3":{
             "H1":{
-                "content": "### 💡Hints\n\n**Hint 2:**  Scroll to the **bottom** of the PR page to add a **comment** requesting a review.  You can **mention** specific individuals or ask any available reviewer for feedback, and remember to be polite and thankful!",
+                "content": "### 💡Hints\n\n**Hint 1:** Go to the **\"Issues\"** tab 📝 to locate the issue linked to your PR.",
                 "video": null,
                 "image": "https://github.com/user-attachments/assets/b99abf76-785c-498f-b9cb-dc038c349de0",
                 "sequence": 1,

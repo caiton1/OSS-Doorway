@@ -324,7 +324,9 @@ async function validateTask(user_data, context, user, db) {
 
     const experiencePoints = quests[quest][task].xp;
     const currentPoints = user_data.points;
-    const remainingPoints = user_data.xp % 100;
+    const level = Math.ceil(currentPoints / 100);
+    const nextLevelPointsNeeded = level * 100; 
+    const remainingPoints = (nextLevelPointsNeeded - currentPoints);
     const completionPercent = user_data.completion * 100;
     const hintsUsed = questData[task].hints || 0;
 
@@ -362,7 +364,7 @@ async function generateSVG(owner, repo, context, user_data, db) {
     if (user_data && user_data.points) {
       user_score = await db.downloadUserData(repo);
     }
-    const currentPos = user_score && user_score.userPosition ? user_score.userPosition : -1;
+    const currentPos = user_score && user_score.userPosition ? user_score.userPosition : 0;
 
 
     const percentage = user_data.completion * 100;
@@ -383,7 +385,7 @@ async function generateSVG(owner, repo, context, user_data, db) {
         ? Object.keys(user_data.completed).length
         : 0;
     const points = Number(user_data.points);
-    const level = Math.ceil(Number(user_data.xp) / 100);
+    const level = Math.ceil(points / 100);
 
     const badgeDescriptions = {
       Q0: "Configurator ⚙️",
@@ -498,7 +500,7 @@ function getMapLink(user_data, quest, task, completed) {
   }
 
   // if all quests completed
-  if (Object.keys(completed).length === 3) {
+  if (Object.keys(completed).length === 4) {
     return `${mapRepoLink}/F.png`;
   }
   if (quest === "") {
@@ -567,7 +569,6 @@ function displayQuests(user_data, context) {
       // check if user has completed or not
       // if completed, strikeout but keep the issue number link
       let isCompleted = user_data.accepted[quest]?.[taskKey].completed ?? false;
-
       if (isCompleted) {
         response += `    -  ~${taskKey} - ${questData[quest][taskKey].desc}~ [[COMPLETED](https://github.com/${repo.owner}/${repo.repo}/issues/${user_data.accepted[quest][taskKey].issueNum})]\n`;
       } else if (task == taskKey) {
@@ -594,7 +595,8 @@ function displayQuests(user_data, context) {
   }
 
   if (user_data.display_preference && user_data.display_preference.includes("map")) {
-    response += `\nQuests Map:\n![Quest Map](${mapLink})`;
+    response += `\nQuests Map:\n ![Quest Map](${mapLink})`;
+
   }
 
   return response;
