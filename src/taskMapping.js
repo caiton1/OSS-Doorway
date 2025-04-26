@@ -239,6 +239,12 @@ async function handleQ3T1(user_data, user, context, ossRepo, response, selectedI
         await completeTask(user_data, "Q3", "T1", context, db);
         return [response.success, true];
     }
+    var llm_answer = await llmInstance.validateAnswer(context.payload.comment.body.toLowerCase(),correctAnswer,"Q3","T1");
+    if(llm_answer == "true") {
+        await completeTask(user_data, "Q2", "T4", context, db);
+        return [response.success, true];
+    }
+
     response = response.error;
     response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
     return [response, false];
