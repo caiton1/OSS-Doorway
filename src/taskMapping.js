@@ -280,7 +280,6 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
     
     try {
       userAnswerString = await llmInstance.quizAnswer(userAnswerString,correctAnswers);
-      console.log(userAnswerString);
       const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   
       await completeTask(user_data, "Q1", "T6", context, db);
@@ -300,9 +299,10 @@ async function handleQ1Quiz(user_data, user, context, ossRepo, response, selecte
 
 async function handleQ2Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswers = ["a", "b", "c", "c", "d", "b"]; 
-    const userAnswerString = context.payload.comment.body;
+    var userAnswerString = context.payload.comment.body;
     
     try {
+      userAnswerString = await llmInstance.quizAnswer(userAnswerString,correctAnswers);
       const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   
       await completeTask(user_data, "Q2", "T5", context, db);
@@ -320,9 +320,10 @@ async function handleQ2Quiz(user_data, user, context, ossRepo, response, selecte
 
 async function handleQ3Quiz(user_data, user, context, ossRepo, response, selectedIssue, db) {
     const correctAnswers = ["b", "c", "c", "b", "b", "d"]; 
-    const userAnswerString = context.payload.comment.body;
+    var userAnswerString = context.payload.comment.body;
     
     try {
+      userAnswerString = await llmInstance.quizAnswer(userAnswerString,correctAnswers);
       //covert format for the real answer to correct answer
       const { correctAnswersNumber, feedback } = utils.validateAnswers(userAnswerString, correctAnswers);
   
