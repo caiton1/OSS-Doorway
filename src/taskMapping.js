@@ -181,15 +181,34 @@ async function handleQ3T1(user_data, user, context, ossRepo, response, selectedI
     return [response, false];
 }
 
-async function handleQ3T2(user_data, user, context, ossRepo, response, selectedIssue, db) {
-    if (await utils.userPRAndComment(ossRepo, user, context)) {
-        await completeTask(user_data, "Q3", "T2", context, db);
-        return [response.success, true];
+// Q3 ───────────────────────────────────────────────────────────────────────────
+    async function handleQ3T2( user_data, user, context, ossRepo, response, selectedIssue, db ) {
+        // Has the user opened a PR **and** left a comment on it?
+        if (await utils.userPRAndComment(ossRepo, user, context)) {
+        try {
+            // Automatically assign the user to the tracked issue
+            if (selectedIssue) {
+                const [owner, repo] = ossRepo.split("/");
+                await context.octokit.issues.addAssignees({ owner, repo, issue_number: selectedIssue, assignees: [user],});
+            }
+    
+            // Mark task complete and return success
+            await completeTask(user_data, "Q3", "T2", context, db);
+            return [response.success, true];
+        } catch (error) {
+            console.error("Error assigning user to issue:", error);
+            response = response.error +
+            `\n\n❗ Failed to assign you to the issue automatically. Please try again or check the bot’s permissions.`;
+            
+            return [response, false];
+        }
+        }
+    
+        // Fallback: user hasn’t met the PR-and-comment requirement yet
+        response = response.error;
+        response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
+        return [response, false];
     }
-    response = response.error;
-    response += `\n\n[Click here to start](https://github.com/${ossRepo})`;
-    return [response, false];
-}
 
 async function handleQ3T3(user_data, user, context, ossRepo, response, selectedIssue, db) {
     if (await utils.issueClosed(ossRepo, selectedIssue, context)) {
